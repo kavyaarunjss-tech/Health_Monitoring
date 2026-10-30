@@ -236,12 +236,12 @@ export function ReplayBar({ playing, onPlay, onStep, onSkip, speed, onSpeed, can
     <View>
       {skipMsg ? <Text style={st.skipMsg}>{skipMsg}</Text> : null}
       <View style={st.player}>
-        <RoundBtn icon="chevronLeft" label="Back 1 hour" onPress={() => onStep(-1)} disabled={!canBack} />
+        <RoundBtn testID="stepBack" icon="chevronLeft" label="Back 1 hour" onPress={() => onStep(-1)} disabled={!canBack} />
         <TouchableOpacity testID="playBtn" accessibilityRole="button" accessibilityLabel={playing ? 'Pause' : 'Play'} onPress={onPlay} style={st.play}>
           <Icon name={playing ? 'pause' : 'play'} size={18} color={C.bg} />
           <Text style={{ position: 'absolute', opacity: 0, fontSize: 1 }}>{playing ? 'Pause' : 'Play'}</Text>
         </TouchableOpacity>
-        <RoundBtn icon="chevronRight" label="Forward 1 hour" onPress={() => onStep(1)} disabled={!canForward} />
+        <RoundBtn testID="stepFwd" icon="chevronRight" label="Forward 1 hour" onPress={() => onStep(1)} disabled={!canForward} />
         <TouchableOpacity onPress={() => onSpeed(speed === 1 ? 3 : speed === 3 ? 6 : 1)} style={{ flex: 1, marginLeft: 10 }} accessibilityRole="button">
           <Text style={st.playerText} numberOfLines={1}>{clockText}</Text>
           <Text style={st.playerSub}>{speed + ' h per step · tap to change'}</Text>
@@ -254,9 +254,9 @@ export function ReplayBar({ playing, onPlay, onStep, onSkip, speed, onSpeed, can
   );
 }
 
-function RoundBtn({ icon, label, onPress, disabled }) {
+function RoundBtn({ icon, label, onPress, disabled, testID }) {
   return (
-    <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} onPress={onPress} disabled={disabled} style={[st.round, disabled ? { opacity: 0.35 } : null]}>
+    <TouchableOpacity testID={testID} accessibilityRole="button" accessibilityLabel={label} onPress={onPress} disabled={disabled} style={[st.round, disabled ? { opacity: 0.35 } : null]}>
       <Icon name={icon} size={18} />
     </TouchableOpacity>
   );

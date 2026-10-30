@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AQ Health · Air Quality &amp; Health Risk Prediction</title>
+<meta name="description" content="Integrated Air Quality and Health Risk Prediction Framework for Sustainable Urban Environments: 1-24 h CPCB AQI forecasts for 8 Karnataka stations with personal health alerts.">
+<meta name="color-scheme" content="dark">
+<style>
+:root { --bg:#0b1320; --card:#131c2b; --card2:#1c2738; --text:#f2f5f9; --soft:#b9c4d0; --muted:#9aa8b8; --accent:#7cc4ff; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin:0; background:var(--bg); color:var(--text); font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height:1.55; }
+a { color:var(--accent); }
+.wrap { max-width:960px; margin:0 auto; padding:28px 16px 48px; }
+.kicker { color:var(--accent); font-weight:700; letter-spacing:.12em; font-size:13px; text-transform:uppercase; }
+h1 { font-size:clamp(28px, 6vw, 46px); line-height:1.12; margin:10px 0 6px; letter-spacing:-.02em; }
+.subtitle { color:var(--soft); font-size:clamp(17px, 3.6vw, 22px); margin:0 0 22px; }
+video { width:100%; border-radius:18px; background:#000; display:block; }
+.vcap { color:var(--muted); font-size:14px; margin-top:8px; }
+section { margin-top:34px; }
+h2 { font-size:22px; margin:0 0 14px; letter-spacing:-.01em; }
+.card { background:var(--card); border-radius:18px; padding:18px 20px; }
+.team { display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:12px; }
+.person { background:var(--card); border-radius:16px; padding:14px 16px; }
+.person b { display:block; font-size:16px; }
+.person span { color:var(--muted); font-size:14px; }
+.meta { color:var(--soft); margin-top:12px; font-size:15px; }
+.grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px; }
+.feat { background:var(--card); border-radius:16px; padding:16px 18px; }
+.feat h3 { margin:0 0 4px; font-size:17px; }
+.feat p { margin:0; color:var(--soft); font-size:15px; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--card2); }
+th { color:var(--muted); font-weight:600; }
+td.ours { color:var(--accent); font-weight:700; }
+.tablewrap { overflow-x:auto; background:var(--card); border-radius:16px; padding:6px 12px; }
+.note { color:var(--muted); font-size:13px; margin-top:8px; }
+ul.clean { margin:0; padding-left:20px; color:var(--soft); }
+ul.clean li { margin:6px 0; }
+.qr { display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
+.qr img { width:150px; height:150px; border-radius:12px; background:#fff; padding:8px; }
+footer { margin-top:40px; color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="kicker">Project demonstration · Karnataka, India</div>
+  <h1>Integrated Air Quality and Health Risk Prediction Framework</h1>
+  <p class="subtitle">for Sustainable Urban Environments</p>
+
+  <video controls playsinline preload="metadata" poster="demo/poster.jpg">
+    <source src="demo/AQHealth_demo.mp4" type="video/mp4">
+    Your browser cannot play this video. <a href="demo/AQHealth_demo.mp4">Download the demo video</a>.
+  </video>
+  <div class="vcap">One-minute project demonstration (with narration and captions).</div>
+
+  <!-- ===================== TEAM DETAILS: edit the names below ===================== -->
+  <section>
+    <h2>Team</h2>
+    <div class="team">
+      <div class="person"><b>[Team member 1 name]</b><span>[USN / role]</span></div>
+      <div class="person"><b>[Team member 2 name]</b><span>[USN / role]</span></div>
+      <div class="person"><b>[Team member 3 name]</b><span>[USN / role]</span></div>
+      <div class="person"><b>[Team member 4 name]</b><span>[USN / role]</span></div>
+    </div>
+    <div class="meta">Guide: [Guide name] · [Department], [College name]</div>
+  </section>
+  <!-- ================================================================================ -->
+
+  <section>
+    <h2>Project description</h2>
+    <div class="card">
+      <p style="margin:0 0 10px">Most air quality apps only show the air <em>right now</em>. This project forecasts the official
+      <b>CPCB Air Quality Index (AQI)</b> 1 to 24 hours ahead for <b>8 KSPCB monitoring stations in Karnataka</b>
+      (Bengaluru: Silk Board, Hebbal, Jayanagar; Chikkaballapur, Chikkamagaluru, Mysuru, Ramanagara, Madikeri) and turns the
+      forecasts into <b>personal health alerts</b>.</p>
+      <p style="margin:0">Our hybrid model <b>CSH-AQI</b> uses the structure of the CPCB formula: at forecast time most of each
+      pollutant's 24-hour (or 8-hour) averaging window is already measured, so the model forecasts only the unknown hours and rebuilds
+      the AQI with the official CPCB breakpoints, combined with gradient-boosting models in an ensemble.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Key features</h2>
+    <div class="grid">
+      <div class="feat"><h3>Careful data cleaning</h3><p>Real 15-minute sensor data (Feb 2025 – Aug 2026). Error codes, stuck sensors and spikes removed; long gaps are never filled with guesses.</p></div>
+      <div class="feat"><h3>Official CPCB AQI</h3><p>24 h / 8 h running averages, sub-indices and the "highest sub-index" rule implemented exactly as CPCB publishes.</p></div>
+      <div class="feat"><h3>Hybrid forecasting model</h3><p>Forecasts only the unknown hours of each averaging window, then a 6-member ensemble gives the final AQI at +1, +6, +12 and +24 h.</p></div>
+      <div class="feat"><h3>Personal health alerts</h3><p>Alert levels by health group (lung or heart disease, children, older adults, pregnancy, outdoor workers, athletes).</p></div>
+      <div class="feat"><h3>Advice with sources</h3><p>Every health message comes from CPCB, the Health Ministry (NCDC) or WHO, with the source shown.</p></div>
+      <div class="feat"><h3>Website and phone app</h3><p>Dashboard, forecast chart, weekly summary, phone notifications and e-mail alerts; a replay mode shows past pollution events hour by hour.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Results (test period, never used for tuning)</h2>
+    <div class="tablewrap">
+      <table>
+        <tr><th>Forecast</th><th>Baseline error<br>("AQI stays as now")</th><th>Our model error</th></tr>
+        <tr><td>+1 hour</td><td>1.09</td><td class="ours">0.65</td></tr>
+        <tr><td>+6 hours</td><td>4.84</td><td class="ours">3.22</td></tr>
+        <tr><td>+12 hours</td><td>7.13</td><td class="ours">5.32</td></tr>
+        <tr><td>+24 hours</td><td>9.59</td><td class="ours">9.05</td></tr>
+      </table>
+    </div>
+    <div class="note">Mean absolute error in AQI points (lower is better), test period 29 May – 21 Jul 2026. Beyond 24 hours the model shows no consistent advantage, so the app shows only 1–24 h forecasts.</div>
+  </section>
+
+  <section>
+    <h2>Real-world applications</h2>
+    <ul class="clean">
+      <li><b>People with asthma, COPD or heart disease</b> get a warning hours before Poor air, with what to do.</li>
+      <li><b>Parents, schools and older adults</b> can plan outdoor activity for the cleaner hours of the day.</li>
+      <li><b>Outdoor workers and athletes</b> can schedule work, breaks and exercise around forecast peaks.</li>
+      <li><b>Hospitals and city agencies</b> can prepare for pollution episodes before they peak.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Societal impact</h2>
+    <div class="card">
+      <ul class="clean">
+        <li>Moves air quality information from <b>reaction</b> (what the air is now) to <b>prevention</b> (what is coming).</li>
+        <li>Protects the most <b>vulnerable groups</b> with earlier, personalised and evidence-based advice.</li>
+        <li>Uses the <b>official CPCB index</b> people already see in the news, so forecasts are easy to trust and compare.</li>
+        <li>Supports <b>sustainable, healthier cities</b> (SDG 3: good health; SDG 11: sustainable cities).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Share this page</h2>
+    <div class="qr"><img src="demo/qr.png" alt="QR code linking to this page"><div style="color:var(--soft)">Scan to open this page.<br>Source code: <a href="https://github.com/kavyaarunjss-tech/Health_Monitoring">github.com/kavyaarunjss-tech/Health_Monitoring</a></div></div>
+  </section>
+
+  <footer>Student research project. Forecasts are produced by a statistical model and can be wrong; health information is general guidance, not medical advice. In an emergency call 112. Data: KSPCB stations via OpenAQ; weather: Open-Meteo.</footer>
+</main>
+</body>
+</html>
