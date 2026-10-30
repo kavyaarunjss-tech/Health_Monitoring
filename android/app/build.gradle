@@ -1,0 +1,31 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.kavya.aqhealth'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.kavya.aqhealth'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // debug signing so the release APK installs directly for the demo
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// No libraries needed: the app uses only the Android SDK (WebView, notifications).

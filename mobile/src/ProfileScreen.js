@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Switch, StyleSheet } from 'react-native';
 import { C, STATIONS, GROUPS, ALERT_CHOICES, defaultAlert, alertLevel } from './theme';
 import { Card, H2, Muted, Chip, Btn, Banner } from './ui';
+import { offlineAvailable, isOffline, OFFLINE_SERVER } from './api';
 
 export default function ProfileScreen({ initial, welcome, onSave, onTestServer, onTestNotification }) {
   const [p, setP] = useState(initial);
@@ -80,7 +81,8 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
         {p.mode === 'replay' ? (
           <View>
             <Text style={st.label}>Replay period</Text>
-            <View style={st.wrap}>
+            {isOffline(p.server) ? <Muted>Built-in demo: 22–25 Apr 2026 (Silk Board pollution event).</Muted> : null}
+            <View style={[st.wrap, isOffline(p.server) ? { display: 'none' } : null]}>
               <Chip label="17 Apr – 29 May 2026 (more events)" active={p.period === 'validation'} onPress={() => set('period', 'validation')} />
               <Chip label="29 May – 21 Jul 2026 (monsoon)" active={p.period === 'test'} onPress={() => set('period', 'test')} />
             </View>
@@ -93,6 +95,17 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
 
       <Card>
         <H2>Laptop server</H2>
+        {offlineAvailable() ? (
+          <Row
+            label="Use built-in demo data (no laptop needed)"
+            value={isOffline(p.server)}
+            onChange={(v) => setP((x) => ({ ...x, server: v ? OFFLINE_SERVER : 'http://', mode: v ? 'replay' : x.mode, period: v ? 'validation' : x.period }))}
+          />
+        ) : null}
+        {isOffline(p.server) ? (
+          <Muted>Real forecasts and advice from the project, packed inside the app: 22–25 Apr 2026 at all 8 stations. Live data needs the laptop server: switch this off and enter its address.</Muted>
+        ) : (
+        <View>
         <Muted>The app reads data from the project's server on your laptop. Phone and laptop must be on the same Wi-Fi or hotspot.</Muted>
         <TextInput
           value={p.server}
@@ -105,6 +118,8 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
           style={[st.input, { marginTop: 10 }]}
         />
         <Btn title={busy ? 'Checking...' : 'Test connection'} kind="secondary" small onPress={testServer} disabled={busy} style={{ marginTop: 10 }} />
+        </View>
+        )}
         {msg ? <Banner kind={msg.ok ? 'info' : 'danger'}>{msg.text}</Banner> : null}
       </Card>
 

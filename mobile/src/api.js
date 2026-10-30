@@ -2,7 +2,12 @@
 import Constants from 'expo-constants';
 
 // Expo Go loads the app from the laptop, so the laptop's Wi-Fi address is known: use the same address with port 8000.
+export const OFFLINE_SERVER = 'offline://demo';
+export const offlineAvailable = () => typeof globalThis !== 'undefined' && !!globalThis.__AQ_OFFLINE;
+export const isOffline = (url) => String(url || '').startsWith('offline://');
+
 export function guessServer() {
+  if (typeof globalThis !== 'undefined' && globalThis.__AQ_DEFAULT_SERVER) return globalThis.__AQ_DEFAULT_SERVER;
   try {
     const h =
       (Constants.expoConfig && Constants.expoConfig.hostUri) ||
@@ -20,7 +25,7 @@ export function guessServer() {
 let BASE = '';
 export function setServer(url) {
   BASE = String(url || '').trim().replace(/\/+$/, '');
-  if (BASE && !/^https?:\/\//.test(BASE)) BASE = 'http://' + BASE;
+  if (BASE && !/^(https?|offline):\/\//.test(BASE)) BASE = 'http://' + BASE;
 }
 export const getServer = () => BASE;
 
