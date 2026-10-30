@@ -6,17 +6,17 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, LogBox, RefreshCo
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { C, HOUR, toMs, labelFromMs, fmtTime, catOf, catRank, alertLevel, stationShort, pname } from './src/theme';
+import { C, HOUR, toMs, labelFromMs, fmtTime, fmtDay, fmtClock, catOf, catRank, alertLevel, stationShort, pname, GROUPS } from './src/theme';
 import { api, setServer, getServer, guessServer } from './src/api';
 import { loadAll, saveAll } from './src/store';
 import { initNotifications, notify, askPermission } from './src/notify';
-import HomeScreen from './src/HomeScreen';
+import HomeScreen, { ReplayBar } from './src/HomeScreen';
 import AdviceScreen from './src/AdviceScreen';
 import StationsScreen from './src/StationsScreen';
 import WeekScreen from './src/WeekScreen';
 import ProfileScreen from './src/ProfileScreen';
 import AlertModal from './src/AlertModal';
-import { Loading, Banner } from './src/ui';
+import { Loading, Banner, Icon } from './src/ui';
 
 LogBox.ignoreLogs(['expo-notifications', 'Android Push notifications', 'remote notifications']);
 
@@ -36,11 +36,10 @@ const COOLDOWN_MS = 12 * HOUR;
 const TICK_MS = 1100;
 
 const TABS = [
-  { id: 'home', label: 'Home', icon: '🏠' },
-  { id: 'advice', label: 'Advice', icon: '❤️' },
-  { id: 'stations', label: 'Stations', icon: '📍' },
-  { id: 'week', label: 'Week', icon: '📅' },
-  { id: 'profile', label: 'Profile', icon: '👤' },
+  { id: 'home', label: 'Home', icon: 'home' },
+  { id: 'advice', label: 'Advice', icon: 'heart' },
+  { id: 'stations', label: 'Stations', icon: 'pin' },
+  { id: 'week', label: 'Week', icon: 'calendar' },
 ];
 
 export default function App() {
@@ -291,6 +290,7 @@ function Main() {
       issued: s.sim_time_end,
       alertFrom,
       lines: (s.personal && s.personal.short) || [],
+      actions: (s.personal && s.personal.top3) || [],
     };
     const body =
       (likely
@@ -376,28 +376,43 @@ function Main() {
     );
   }
 
-  const greeting = profile && profile.name ? 'Hi, ' + profile.name.split(' ')[0] : 'Air quality & your health';
+  const goTab = (id) => {
+    setTab(id);
+    if (scrollRef.current && scrollRef.current.scrollTo) scrollRef.current.scrollTo({ y: 0, animated: false });
+  };
+  const groupsLabel = groups.length ? groups.map((g) => (GROUPS.find((x) => x.id === g) || { label: g }).label).join(', ') : 'healthy adult';
 
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <View style={{ flex: 1 }}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        {welcome ? (
           <Text style={styles.appName}>AQ Health</Text>
-          <Text style={styles.greeting} numberOfLines={1}>{welcome ? 'Karnataka air quality forecasts' : greeting}</Text>
-        </View>
+        ) : (
+          <TouchableOpacity testID="stationBtn" accessibilityRole="button" onPress={() => goTab('stations')} style={styles.stationBtn}>
+            <Icon name="pin" size={18} color={C.muted} />
+            <Text style={styles.stationText} numberOfLines={1}>{stationShort(profile.station)}</Text>
+            <Icon name="chevronDown" size={16} color={C.muted} />
+          </TouchableOpacity>
+        )}
+        <View style={{ flex: 1 }} />
         {profile ? (
-          <View style={[styles.modeChip, { backgroundColor: mode === 'replay' ? '#6b5bd6' : C.teal }]}>
-            <Text style={styles.modeChipText}>{mode === 'replay' ? 'REPLAY DEMO' : 'LIVE'}</Text>
+          <View style={styles.modeChip}>
+            <Text style={styles.modeChipText}>{mode === 'replay' ? 'REPLAY' : 'LIVE'}</Text>
           </View>
+        ) : null}
+        {!welcome ? (
+          <TouchableOpacity testID="tab_profile" accessibilityRole="button" accessibilityLabel="Profile and settings" onPress={() => goTab('profile')} style={[styles.gear, tab === 'profile' ? { backgroundColor: C.selBg } : null]}>
+            <Icon name="settings" size={20} color={tab === 'profile' ? C.text : C.muted} />
+          </TouchableOpacity>
         ) : null}
       </View>
 
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 14, paddingBottom: 24 }}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={() => setReload((x) => x + 1)} />}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 24 }}
+        refreshControl={<RefreshControl refreshing={false} tintColor={C.accent} onRefresh={() => setReload((x) => x + 1)} />}
       >
         {welcome ? (
           <ProfileScreen initial={welcome} welcome onSave={saveProfile} onTestServer={testServer} onTestNotification={testNotification} />
@@ -415,32 +430,16 @@ function Main() {
                 error={error}
                 alertFrom={alertFrom}
                 onRetry={() => setReload((x) => x + 1)}
-                onOpenAdvice={() => setTab('advice')}
-                onOpenStations={() => setTab('stations')}
-                replay={
-                  mode === 'replay' && hours.length
-                    ? {
-                        playing,
-                        onPlay,
-                        onStep,
-                        onSkip,
-                        speed,
-                        onSpeed: setSpeed,
-                        canBack: idx > 0,
-                        canForward: idx < hours.length - 1,
-                        skipMsg,
-                      }
-                    : null
-                }
+                onOpenAdvice={() => goTab('advice')}
               />
             ) : null}
             {tab === 'advice' ? (
-              error && !vm ? <Banner kind="danger">{error}</Banner> : <AdviceScreen vm={vm} meta={meta} alertFrom={alertFrom} />
+              error && !vm ? <Banner kind="danger">{error}</Banner> : <AdviceScreen vm={vm} meta={meta} alertFrom={alertFrom} groupsLabel={groupsLabel} />
             ) : null}
             {tab === 'stations' ? (
               <StationsScreen data={stations.data} error={stations.error} current={profile.station} onPick={pickStation} mode={mode} />
             ) : null}
-            {tab === 'week' ? <WeekScreen data={week.data} error={week.error} /> : null}
+            {tab === 'week' ? <WeekScreen data={week.data} error={week.error} station={profile.station} /> : null}
             {tab === 'profile' ? (
               <ProfileScreen
                 key={JSON.stringify(profile)}
@@ -460,29 +459,45 @@ function Main() {
         </View>
       ) : null}
 
+      {!welcome && tab === 'home' && mode === 'replay' && hours.length ? (
+        <ReplayBar
+          playing={playing}
+          onPlay={onPlay}
+          onStep={onStep}
+          onSkip={onSkip}
+          speed={speed}
+          onSpeed={setSpeed}
+          canBack={idx > 0}
+          canForward={idx < hours.length - 1}
+          skipMsg={skipMsg}
+          clockText={'Replay · ' + (label ? fmtDay(labelFromMs(toMs(label) + HOUR)) + ', ' + fmtClock(labelFromMs(toMs(label) + HOUR)) : '')}
+        />
+      ) : null}
+
       {!welcome ? (
-        <View style={[styles.tabbar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-          {TABS.map((t) => (
-            <TouchableOpacity
-              key={t.id}
-              testID={'tab_' + t.id}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: tab === t.id }}
-              style={styles.tab}
-              onPress={() => {
-                setTab(t.id);
-                if (scrollRef.current && scrollRef.current.scrollTo) scrollRef.current.scrollTo({ y: 0, animated: false });
-              }}
-            >
-              <Text style={[styles.tabIcon, tab === t.id ? null : { opacity: 0.55 }]}>{t.icon}</Text>
-              <Text style={[styles.tabLabel, tab === t.id ? styles.tabOn : null]}>{t.label}</Text>
-            </TouchableOpacity>
-          ))}
+        <View style={[styles.tabbar, { paddingBottom: Math.max(insets.bottom, 10) + 6 }]}>
+          {TABS.map((t) => {
+            const on = tab === t.id;
+            return (
+              <TouchableOpacity
+                key={t.id}
+                testID={'tab_' + t.id}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: on }}
+                style={styles.tab}
+                onPress={() => goTab(t.id)}
+              >
+                <Icon name={t.icon} size={22} color={on ? C.text : C.faint} width={on ? 2 : 1.8} />
+                <Text style={[styles.tabLabel, on ? styles.tabOn : null]}>{t.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       ) : null}
 
       <AlertModal
         alert={alert}
+        insets={insets}
         replay={mode === 'replay'}
         onDismiss={() => setAlert(null)}
         onContinue={() => {
@@ -525,6 +540,8 @@ function fromReplay(s) {
     mode: 'replay',
     stationName: s.station_name,
     banner: { tag: 'REPLAY', kind: 'replay', text: fmtTime(s.sim_time_end) + ' IST · simulated time' },
+    timeLine: fmtDay(s.sim_time_end) + ' · ' + fmtClock(s.sim_time_end) + ' · replay',
+    clock: s.sim_time_end,
     nowLabel: 'AQI for the hour ending ' + fmtTime(s.sim_time_end),
     now: nowAqi != null ? { aqi: nowAqi, category: catOf(nowAqi), dominant: s.now.dominant } : null,
     forecasts: (s.forecasts || []).filter((f) => f.horizon <= 24).map((f) => ({ ...f, past: false })),
@@ -551,6 +568,10 @@ function fromLive({ s, personal }) {
         ? (stale ? 'DATA IS OLD · ' : '') + 'newest data ' + fmtTime(s.last_obs_end) + ' (' + Math.round(s.age_hours) + ' h old)'
         : 'No recent data for this station',
     },
+    timeLine: s.last_obs_end
+      ? (stale ? 'Last data ' : 'Updated ') + fmtDay(s.last_obs_end) + ' · ' + fmtClock(s.last_obs_end) + ' (' + Math.round(s.age_hours) + ' h ago)'
+      : 'No recent data',
+    clock: s.last_obs_end,
     nowLabel: has ? (stale ? 'Last known AQI, hour ending ' : 'AQI for the hour ending ') + fmtTime(s.last_obs_end) : '',
     now: has ? { aqi: s.last_aqi, category: catOf(s.last_aqi), dominant: s.dominant_now } : null,
     forecasts: (s.forecasts || []).filter((f) => f.horizon <= 24).map((f) => ({ ...f, available: true, past: f.status === 'past' })),
@@ -564,15 +585,16 @@ function fromLive({ s, personal }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  header: { backgroundColor: C.navy, paddingHorizontal: 16, paddingBottom: 12, flexDirection: 'row', alignItems: 'center' },
-  appName: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  greeting: { color: '#cfe0ec', fontSize: 13, marginTop: 1 },
-  modeChip: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
-  modeChipText: { color: '#fff', fontWeight: '800', fontSize: 11, letterSpacing: 0.5 },
-  tabbar: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: C.border, paddingTop: 6 },
+  header: { paddingHorizontal: 16, paddingBottom: 6, flexDirection: 'row', alignItems: 'center', backgroundColor: C.bg },
+  appName: { color: C.text, fontSize: 20, fontWeight: '800', paddingVertical: 10, paddingLeft: 4 },
+  stationBtn: { flexDirection: 'row', alignItems: 'center', minHeight: 44, paddingHorizontal: 4, maxWidth: 230 },
+  stationText: { color: C.text, fontSize: 17, fontWeight: '600', marginHorizontal: 6 },
+  modeChip: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: C.card2, marginRight: 8 },
+  modeChipText: { color: C.soft, fontWeight: '700', fontSize: 11, letterSpacing: 0.8 },
+  gear: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  tabbar: { flexDirection: 'row', backgroundColor: C.nav, borderTopWidth: 1, borderTopColor: C.card2, paddingTop: 10 },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 2 },
-  tabIcon: { fontSize: 20 },
-  tabLabel: { fontSize: 11, color: C.muted, marginTop: 2 },
-  tabOn: { color: C.navy, fontWeight: '800' },
-  toast: { position: 'absolute', left: 24, right: 24, backgroundColor: 'rgba(15,29,43,0.92)', borderRadius: 10, padding: 12, alignItems: 'center' },
+  tabLabel: { fontSize: 11, color: C.faint, marginTop: 4, fontWeight: '500' },
+  tabOn: { color: C.text, fontWeight: '700' },
+  toast: { position: 'absolute', left: 24, right: 24, backgroundColor: C.card2, borderRadius: 12, padding: 12, alignItems: 'center' },
 });

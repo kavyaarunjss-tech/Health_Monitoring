@@ -1,132 +1,147 @@
-// "This week's air and your health": the 7 complete days before the replay time (or the newest live data).
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { C, catStyle, catRank, pname } from './theme';
-import { Card, H2, Muted, Loading, Banner, ActionRow, Rich, s } from './ui';
+// Your week: one headline, 7 coloured days, two numbers, one tip; the full weekly advice behind "Show details".
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { C, catStyle, catRank, pname, stationShort } from './theme';
+import { Card, Muted, Loading, Banner, ActionCard, Rich, Icon, s as ui } from './ui';
 
-export default function WeekScreen({ data, error }) {
+export default function WeekScreen({ data, error, station }) {
+  const [open, setOpen] = useState(false);
   if (error) return <Banner kind="danger">{error}</Banner>;
   if (!data) return <Loading text="Loading the week..." />;
   const stale = data.data && data.data.stale;
   const days = data.days || [];
-  const bad = days.filter((d) => d.valid && catRank(d.category) >= 2).length;
-  const max = Math.max(150, ...days.map((d) => d.aqi || 0)) * 1.1;
+  const valid = days.filter((d) => d.valid);
+  const bad = valid.filter((d) => catRank(d.category) >= 2).length;
+  const counts = {};
+  valid.forEach((d) => (counts[d.category] = (counts[d.category] || 0) + 1));
+  const most = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
   const tr = data.trend || {};
-  const trendText =
-    tr.direction === 'rising' ? '↗ Getting worse' : tr.direction === 'falling' ? '↘ Getting better' : tr.direction === 'steady' ? '→ Steady' : 'Trend unknown';
+  const trend =
+    tr.direction === 'rising' ? { t: 'Worse', icon: 'up', color: C.warnIcon } :
+    tr.direction === 'falling' ? { t: 'Better', icon: 'down', color: C.good } :
+    tr.direction === 'steady' ? { t: 'Steady', icon: 'steady', color: C.soft } : null;
   const h = data.health || {};
   const top = (data.top3 || []).map((id) => (h.actions || []).find((a) => a.id === id)).filter(Boolean);
-  const rest = (h.actions || []).filter((a) => !(data.top3 || []).includes(a.id));
+  const used = new Set((data.top3 || []).slice(0, 1));
+  const rest = (h.actions || []).filter((a) => !used.has(a.id));
   return (
     <View>
-      <Card>
-        <H2>{stale ? 'Last available week' : 'This week'}</H2>
-        {stale ? <Banner kind="danger">Data feed stopped: this is the newest week with data, not the current week.</Banner> : null}
-        {!data.enough ? (
-          <Muted>Not enough data for a weekly summary (needs at least 5 of 7 days with valid data).</Muted>
-        ) : (
-          <View>
-            <View style={st.summary}>
-              <View style={{ flex: 1 }}>
-                <Text style={st.big}>{bad + ' of 7'}</Text>
-                <Muted>days Moderate or worse</Muted>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={st.trend}>{trendText}</Text>
-                <Muted>{tr.last3 != null ? 'last 3 days avg ' + tr.last3 + ' vs ' + tr.prev4 : ''}</Muted>
-              </View>
-            </View>
-            <View style={st.bars}>
-              {days.map((d) => (
-                <View key={d.date} style={st.dayCol}>
-                  <Text style={st.dayAqi}>{d.valid ? d.aqi : '–'}</Text>
-                  <View style={st.track}>
-                    <View
-                      style={[
-                        st.dayBar,
-                        d.valid
-                          ? { height: ((d.aqi || 0) / max) * 110, backgroundColor: catStyle(d.category).bg }
-                          : { height: 6, backgroundColor: '#d5dbe2' },
-                      ]}
-                    />
-                  </View>
-                  <Text style={st.dayLbl}>{d.weekday}</Text>
-                  <Text style={st.dayLbl2}>{d.label}</Text>
+      <Text style={st.kicker}>{(stale ? 'Last available week' : 'Your week') + ' · ' + stationShort(station)}</Text>
+      <Text style={st.h1}>{data.enough && most ? 'Mostly ' + most + ' air ' + (stale ? 'that week' : 'this week') : 'Not enough data this week'}</Text>
+      {stale ? <Banner kind="danger">Data feed stopped: this is the newest week with data, not the current week.</Banner> : null}
+
+      {!data.enough ? (
+        <Card>
+          <Muted>A weekly summary needs at least 5 of 7 days with valid data.</Muted>
+        </Card>
+      ) : (
+        <View>
+          <Card style={{ paddingTop: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              {days.map((d, i) => (
+                <View key={d.date} style={{ alignItems: 'center', flex: 1 }}>
+                  <View style={[st.day, { backgroundColor: d.valid ? catStyle(d.category).bg : C.card2 }]} />
+                  <Text style={[st.wd, i === days.length - 1 ? { color: C.text } : null]}>{d.weekday}</Text>
                 </View>
               ))}
             </View>
-            {data.dominant ? <Muted style={{ marginTop: 8 }}>{'Main pollutant this week: ' + pname(data.dominant)}</Muted> : null}
-          </View>
-        )}
-      </Card>
+            <View style={st.legend}>
+              {Object.keys(counts).map((c) => (
+                <View key={c} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 7, marginTop: 4 }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: catStyle(c).bg, marginRight: 6 }} />
+                  <Text style={{ color: C.muted, fontSize: 12 }}>{c}</Text>
+                </View>
+              ))}
+            </View>
+          </Card>
 
-      {data.enough ? (
-        <View>
-          {(h.clean || []).length ? (
-            <Card accent={catStyle('Good').bg}>
-              <H2>Good news</H2>
-              {h.clean.map((x) => (
-                <Rich key={x.id} text={x.marked || x.text} style={[s.body, { marginBottom: 6 }]} />
-              ))}
+          <View style={{ flexDirection: 'row' }}>
+            <Card style={{ flex: 1, marginRight: 6 }}>
+              <Text style={st.stat}>{bad}<Text style={st.statOf}>{' of 7'}</Text></Text>
+              <Text style={st.statLbl}>days Moderate or worse</Text>
             </Card>
-          ) : null}
-          {top.length ? (
-            <Card accent={C.teal}>
-              <H2>Your top actions this week</H2>
-              {top.map((a) => (
-                <ActionRow key={a.id} icon={a.icon} marked={a.marked} text={a.text} source={'[' + a.sources.join('][') + ']'} />
-              ))}
+            <Card style={{ flex: 1, marginLeft: 6 }}>
+              {trend ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+                  <Icon name={trend.icon} size={22} color={trend.color} width={2.4} />
+                  <Text style={[st.trend, { color: trend.color }]}>{trend.t}</Text>
+                </View>
+              ) : (
+                <Text style={st.trend}>–</Text>
+              )}
+              <Text style={st.statLbl}>than the days before</Text>
             </Card>
-          ) : null}
-          {(h.short_term || []).length ? (
-            <Card accent={catStyle('Moderate').bg}>
-              <H2>{stale ? 'During that week, air like this may affect you' : 'This week, air like this may affect you'}</H2>
-              {h.short_term.map((x) => (
-                <Item key={x.id} x={x} />
-              ))}
-            </Card>
-          ) : null}
-          {(h.long_term || []).length ? (
-            <Card accent={catStyle('Very Poor').bg}>
-              <H2>If this continues</H2>
-              {h.long_term.map((x) => (
-                <Item key={x.id} x={x} />
-              ))}
-            </Card>
-          ) : null}
-          {rest.length ? (
-            <Card>
-              <H2>More things you can do</H2>
-              {rest.map((a) => (
-                <ActionRow key={a.id} icon={a.icon} marked={a.marked} text={a.text} source={'[' + a.sources.join('][') + ']'} />
-              ))}
-            </Card>
+          </View>
+
+          {top[0] ? <ActionCard icon={top[0].icon} marked={top[0].marked} text={top[0].text} source={'[' + top[0].sources.join('][') + ']'} title="This week's tip" /> : null}
+
+          <TouchableOpacity onPress={() => setOpen(!open)} accessibilityRole="button" style={st.more}>
+            <Text style={{ color: C.accent, fontWeight: '700', fontSize: 15 }}>{open ? 'Hide details' : 'Show details'}</Text>
+          </TouchableOpacity>
+
+          {open ? (
+            <View>
+              {days.length ? (
+                <Card>
+                  <Text style={[ui.h2, { marginBottom: 6 }]}>Daily AQI</Text>
+                  {days.map((d) => (
+                    <View key={d.date} style={st.dayRow}>
+                      <Text style={{ color: C.soft, width: 90 }}>{d.weekday + ' ' + d.label}</Text>
+                      <Text style={{ color: C.text, fontWeight: '700', width: 44 }}>{d.valid ? d.aqi : '–'}</Text>
+                      <Text style={{ color: C.muted, flex: 1 }}>{d.valid ? d.category + (d.dominant ? ' · ' + pname(d.dominant) : '') : 'not enough hours'}</Text>
+                    </View>
+                  ))}
+                </Card>
+              ) : null}
+              <Section title={stale ? 'Air like that week may have affected you' : 'Air like this may affect you'} items={h.short_term} />
+              <Section title="If this continues" items={h.long_term} />
+              <Section title="Good news" items={h.clean} />
+              {rest.length ? (
+                <Card>
+                  <Text style={[ui.h2, { marginBottom: 6 }]}>Things you can do</Text>
+                  {rest.map((a) => (
+                    <View key={a.id} style={{ paddingVertical: 6 }}>
+                      <Rich text={'• ' + (a.marked || a.text)} style={ui.body} />
+                      <Text style={ui.src}>{'[' + a.sources.join('][') + ']'}</Text>
+                    </View>
+                  ))}
+                </Card>
+              ) : null}
+            </View>
           ) : null}
         </View>
-      ) : null}
-      <Muted style={{ textAlign: 'center', marginVertical: 8 }}>{data.disclaimer}</Muted>
+      )}
+      <Text style={st.foot}>{data.disclaimer}</Text>
     </View>
   );
 }
 
-function Item({ x }) {
+function Section({ title, items }) {
+  if (!items || !items.length) return null;
   return (
-    <View style={{ paddingVertical: 6 }}>
-      <Rich text={'• ' + (x.marked || x.text)} style={s.body} />
-      <Text style={s.src}>{'[' + (x.sources || []).join('][') + ']'}</Text>
-    </View>
+    <Card>
+      <Text style={[ui.h2, { marginBottom: 6 }]}>{title}</Text>
+      {items.map((x) => (
+        <View key={x.id} style={{ paddingVertical: 6 }}>
+          <Rich text={'• ' + (x.marked || x.text)} style={ui.body} />
+          <Text style={ui.src}>{'[' + (x.sources || []).join('][') + ']'}</Text>
+        </View>
+      ))}
+    </Card>
   );
 }
 
 const st = StyleSheet.create({
-  summary: { flexDirection: 'row', marginBottom: 14 },
-  big: { fontSize: 28, fontWeight: '800', color: C.text },
-  trend: { fontSize: 18, fontWeight: '700', color: C.text, marginTop: 6 },
-  bars: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  dayCol: { flex: 1, alignItems: 'center' },
-  dayAqi: { fontSize: 12, fontWeight: '700', color: C.text, marginBottom: 2 },
-  track: { height: 112, justifyContent: 'flex-end', width: '70%' },
-  dayBar: { width: '100%', borderTopLeftRadius: 4, borderTopRightRadius: 4 },
-  dayLbl: { fontSize: 12, color: C.text, marginTop: 4, fontWeight: '600' },
-  dayLbl2: { fontSize: 10, color: C.muted },
+  kicker: { color: C.muted, fontSize: 15, marginTop: 6 },
+  h1: { color: C.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.5, lineHeight: 34, marginTop: 4, marginBottom: 16 },
+  day: { width: 34, height: 34, borderRadius: 17 },
+  wd: { color: C.muted, fontSize: 12, fontWeight: '600', marginTop: 8 },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16 },
+  stat: { color: C.text, fontSize: 30, fontWeight: '800' },
+  statOf: { color: C.muted, fontSize: 16, fontWeight: '600' },
+  statLbl: { color: C.muted, fontSize: 13, marginTop: 4 },
+  trend: { color: C.text, fontSize: 22, fontWeight: '800', marginLeft: 6 },
+  more: { height: 48, alignItems: 'center', justifyContent: 'center' },
+  dayRow: { flexDirection: 'row', paddingVertical: 6, borderTopWidth: 1, borderTopColor: C.card2 },
+  foot: { color: C.faint, fontSize: 12, textAlign: 'center', marginVertical: 12 },
 });

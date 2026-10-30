@@ -1,72 +1,59 @@
-// All 8 stations at a glance; tap one to make it your station.
+// All 8 stations as a simple list, highest AQI first; tap one to follow it.
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { C, catStyle, stationShort, fmtTime } from './theme';
-import { Card, Muted, Loading, Banner } from './ui';
+import { C, catStyle, stationShort, CAT_ORDER } from './theme';
+import { Loading, Banner } from './ui';
 
 export default function StationsScreen({ data, error, current, onPick, mode }) {
   if (error) return <Banner kind="danger">{error}</Banner>;
   if (!data) return <Loading text="Loading stations..." />;
+  const rows = data.stations.slice().sort((a, b) => (b.aqi == null ? -1 : b.aqi) - (a.aqi == null ? -1 : a.aqi));
   return (
     <View>
-      <Muted style={{ marginBottom: 10 }}>
-        {mode === 'live'
-          ? 'Newest measured AQI at each station. Tap a station to follow it.'
-          : 'AQI at each station at the replay time (' + fmtTime(data.clock_end) + '). Tap a station to follow it.'}
-      </Muted>
-      <View style={st.grid}>
-        {data.stations.map((x) => {
-          const c = catStyle(x.category);
-          const has = x.aqi != null;
-          const stale = x.status === 'stale';
-          return (
-            <TouchableOpacity
-              key={x.id}
-              testID={'st_' + x.id}
-              accessibilityRole="button"
-              activeOpacity={0.8}
-              onPress={() => onPick(x.id)}
-              style={[st.tile, { backgroundColor: has && !stale ? c.bg : '#c9d1da' }, current === x.id ? st.current : null]}
-            >
-              <Text style={[st.name, { color: has && !stale ? c.fg : C.text }]} numberOfLines={1}>{stationShort(x.id)}</Text>
-              <Text style={[st.aqi, { color: has && !stale ? c.fg : C.text }]}>{has ? x.aqi : '–'}</Text>
-              <Text style={[st.cat, { color: has && !stale ? c.fg : C.text }]} numberOfLines={1}>
-                {has ? x.category : 'No data'}
-              </Text>
-              {stale ? <Text style={st.stale}>{'DATA OLD · ' + Math.round(x.age_hours) + ' h'}</Text> : null}
-              {current === x.id ? <Text style={[st.you, { color: has && !stale ? c.fg : C.text }]}>{'★ your station'}</Text> : null}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-      <Card>
-        <Text style={{ fontWeight: '700', color: C.text, marginBottom: 6 }}>CPCB AQI categories</Text>
-        {[
-          ['Good', '0–50'],
-          ['Satisfactory', '51–100'],
-          ['Moderate', '101–200'],
-          ['Poor', '201–300'],
-          ['Very Poor', '301–400'],
-          ['Severe', '401–500'],
-        ].map(([n, r]) => (
-          <View key={n} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
-            <View style={{ width: 16, height: 16, borderRadius: 4, backgroundColor: catStyle(n).bg, marginRight: 10 }} />
-            <Text style={{ color: C.text, width: 110 }}>{n}</Text>
-            <Text style={{ color: C.muted }}>{r}</Text>
+      <Text style={st.h1}>Stations</Text>
+      <Text style={st.sub}>{mode === 'live' ? 'Newest data at each station · tap one to follow it' : 'At the replay time · tap one to follow it'}</Text>
+      {rows.map((x) => {
+        const has = x.aqi != null;
+        const stale = x.status === 'stale';
+        const mine = current === x.id;
+        return (
+          <TouchableOpacity
+            key={x.id}
+            testID={'st_' + x.id}
+            accessibilityRole="button"
+            activeOpacity={0.8}
+            onPress={() => onPick(x.id)}
+            style={[st.row, mine ? st.mine : null]}
+          >
+            <View style={[st.dot, { backgroundColor: has && !stale ? catStyle(x.category).bg : '#4a5668' }]} />
+            <View style={{ flex: 1 }}>
+              <Text style={st.name}>{stationShort(x.id) + (mine ? ' · yours' : '')}</Text>
+              <Text style={st.cat}>{!has ? 'No data right now' : stale ? x.category + ' · data ' + Math.round(x.age_hours) + ' h old' : x.category}</Text>
+            </View>
+            <Text style={[st.aqi, !has || stale ? { color: C.faint } : null]}>{has ? x.aqi : '–'}</Text>
+          </TouchableOpacity>
+        );
+      })}
+      <View style={st.legend}>
+        {CAT_ORDER.map((c) => (
+          <View key={c} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, marginBottom: 6 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: catStyle(c).bg, marginRight: 6 }} />
+            <Text style={{ color: C.muted, fontSize: 12 }}>{c}</Text>
           </View>
         ))}
-      </Card>
+      </View>
     </View>
   );
 }
 
 const st = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  tile: { width: '48.5%', borderRadius: 14, padding: 14, marginBottom: 10, minHeight: 118 },
-  current: { borderWidth: 3, borderColor: C.navy },
-  name: { fontWeight: '700', fontSize: 15 },
-  aqi: { fontSize: 34, fontWeight: '800', marginTop: 4 },
-  cat: { fontSize: 13, fontWeight: '600' },
-  stale: { marginTop: 4, fontSize: 11, fontWeight: '800', color: C.danger },
-  you: { marginTop: 4, fontSize: 11, fontWeight: '700' },
+  h1: { color: C.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.5, marginTop: 6 },
+  sub: { color: C.muted, fontSize: 15, marginTop: 4, marginBottom: 16 },
+  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 16, paddingHorizontal: 16, height: 64, marginBottom: 8, borderWidth: 1, borderColor: 'transparent' },
+  mine: { backgroundColor: C.selBg, borderColor: '#2d4a6e' },
+  dot: { width: 12, height: 12, borderRadius: 6, marginRight: 14 },
+  name: { color: C.text, fontSize: 16, fontWeight: '600' },
+  cat: { color: C.muted, fontSize: 13, marginTop: 2 },
+  aqi: { color: C.text, fontSize: 22, fontWeight: '800' },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
 });

@@ -2,29 +2,37 @@
 // CPCB category colours and text colours are the same as the website (frontend/style.css), chosen for WCAG AA contrast.
 
 export const C = {
-  navy: '#0b3c5d',
-  teal: '#0f6e78',
-  bg: '#f4f6f9',
-  card: '#ffffff',
-  text: '#0f1d2b',
-  muted: '#5b6b7b',
-  border: '#e2e8f0',
-  danger: '#c62828',
-  warnBg: '#fff4e5',
-  warnText: '#8a4b00',
-  infoBg: '#e8f3f5',
+  bg: '#0b1320',
+  card: '#131c2b',
+  card2: '#1c2738',
+  nav: '#0f1826',
+  text: '#f2f5f9',
+  soft: '#b9c4d0',
+  muted: '#9aa8b8',
+  faint: '#8593a3',
+  accent: '#7cc4ff',
+  selBg: '#16233a',
+  selBorder: '#3b6a9a',
+  good: '#5fd08a',
+  warnBg: '#2a1b0e',
+  warnText: '#ffd9bd',
+  warnIcon: '#ffb27a',
+  dangerBg: '#2b1215',
+  danger: '#ff8a8f',
+  infoBg: '#10263a',
 };
 
+// CPCB category colours, brightened slightly so they stay clear on the dark background
 export const CAT = {
-  Good: { bg: '#1a7f3c', fg: '#ffffff' },
-  Satisfactory: { bg: '#9ccc3c', fg: '#0f1d2b' },
-  Moderate: { bg: '#f5c400', fg: '#0f1d2b' },
-  Poor: { bg: '#ef7d0f', fg: '#0f1d2b' },
-  'Very Poor': { bg: '#c62828', fg: '#ffffff' },
-  Severe: { bg: '#7a1212', fg: '#ffffff' },
+  Good: { bg: '#3fbf6f', fg: '#08130c' },
+  Satisfactory: { bg: '#a8d64a', fg: '#11180a' },
+  Moderate: { bg: '#f5c400', fg: '#1a1500' },
+  Poor: { bg: '#ff8a2a', fg: '#1f1000' },
+  'Very Poor': { bg: '#e5484d', fg: '#ffffff' },
+  Severe: { bg: '#a3262a', fg: '#ffffff' },
 };
 export const CAT_ORDER = ['Good', 'Satisfactory', 'Moderate', 'Poor', 'Very Poor', 'Severe'];
-export const catStyle = (c) => CAT[c] || { bg: '#9aa5b1', fg: '#ffffff' };
+export const catStyle = (c) => CAT[c] || { bg: '#4a5668', fg: '#f2f5f9' };
 export const catRank = (c) => CAT_ORDER.indexOf(c);
 
 export const PNAME = { pm25: 'PM2.5', pm10: 'PM10', no2: 'NO₂', so2: 'SO₂', o3: 'O₃', co: 'CO' };
@@ -103,4 +111,34 @@ export function catOf(aqi) {
   if (a <= 300) return 'Poor';
   if (a <= 400) return 'Very Poor';
   return 'Severe';
+}
+
+// position (0..1) of an AQI value on the CPCB scale bar whose segments are 0-50, 50-100 (narrow) and 100-200 ... 400-500 (wide)
+export function scalePos(aqi) {
+  const a = Math.max(0, Math.min(500, aqi || 0));
+  if (a <= 100) return (a / 100) * 0.2;
+  return 0.2 + ((a - 100) / 400) * 0.8;
+}
+
+// "3 AM", or "Sat 3 AM" when the day differs from the reference time
+const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export function fmtClock(s, ref) {
+  const ms = toMs(s);
+  if (isNaN(ms)) return s || '';
+  const d = new Date(ms);
+  let h = d.getUTCHours();
+  const ap = h < 12 ? 'AM' : 'PM';
+  h = h % 12 || 12;
+  const t = h + ' ' + ap;
+  if (ref) {
+    const r = new Date(toMs(ref));
+    if (r.getUTCDate() !== d.getUTCDate()) return WD[d.getUTCDay()] + ' ' + t;
+  }
+  return t;
+}
+export function fmtDay(s) {
+  const ms = toMs(s);
+  if (isNaN(ms)) return s || '';
+  const d = new Date(ms);
+  return WD[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
 }

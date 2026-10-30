@@ -29,19 +29,19 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
   return (
     <View>
       {welcome ? (
-        <Card accent={C.teal}>
+        <View style={{ marginTop: 10, marginBottom: 16 }}>
           <Text style={st.welcome}>Welcome to AQ Health</Text>
           <Muted>
             Air quality forecasts for 8 Karnataka stations with personal health alerts. Tell us a little about you so the advice fits you. Everything
             stays on this phone.
           </Muted>
-        </Card>
+        </View>
       ) : null}
 
       <Card>
         <H2>About you</H2>
         <Text style={st.label}>Your name (optional)</Text>
-        <TextInput value={p.name} onChangeText={(v) => set('name', v)} placeholder="e.g. Kavya" style={st.input} />
+        <TextInput value={p.name} onChangeText={(v) => set('name', v)} placeholder="e.g. Kavya" placeholderTextColor={C.faint} style={st.input} />
         <Text style={[st.label, { marginTop: 14 }]}>Your nearest station</Text>
         <View style={st.wrap}>
           {STATIONS.map((x) => (
@@ -101,6 +101,7 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
           autoCorrect={false}
           keyboardType="url"
           placeholder="http://192.168.1.5:8000"
+          placeholderTextColor={C.faint}
           style={[st.input, { marginTop: 10 }]}
         />
         <Btn title={busy ? 'Checking...' : 'Test connection'} kind="secondary" small onPress={testServer} disabled={busy} style={{ marginTop: 10 }} />
@@ -115,16 +116,16 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
 function Row({ label, value, onChange }) {
   return (
     <View style={st.row}>
-      <Text style={{ flex: 1, color: C.text, fontSize: 15 }}>{label}</Text>
-      <Switch value={!!value} onValueChange={onChange} trackColor={{ true: C.teal, false: '#c9d1da' }} thumbColor="#ffffff" />
+      <Text style={{ flex: 1, color: C.text, fontSize: 15, paddingRight: 10 }}>{label}</Text>
+      <Switch value={!!value} onValueChange={onChange} trackColor={{ true: '#3b82c4', false: C.card2 }} thumbColor={C.text} />
     </View>
   );
 }
 
 const st = StyleSheet.create({
-  welcome: { fontSize: 22, fontWeight: '800', color: C.navy, marginBottom: 6 },
-  label: { fontWeight: '600', color: C.text, marginBottom: 8, fontSize: 14 },
-  input: { borderWidth: 1, borderColor: C.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, color: C.text, backgroundColor: '#fff' },
+  welcome: { fontSize: 30, fontWeight: '800', color: C.text, marginBottom: 8, letterSpacing: -0.5 },
+  label: { fontWeight: '600', color: C.soft, marginBottom: 10, fontSize: 14 },
+  input: { borderWidth: 1, borderColor: C.card2, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: C.text, backgroundColor: C.bg },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: C.border, marginTop: 10 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: C.card2, marginTop: 10 },
 });

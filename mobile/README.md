@@ -33,7 +33,7 @@ cd mobile
 npm.cmd install expo@latest
 ```
 ```powershell
-npx.cmd expo install react react-native expo-status-bar expo-constants expo-notifications @react-native-async-storage/async-storage react-native-safe-area-context
+npx.cmd expo install react react-native expo-status-bar expo-constants expo-notifications @react-native-async-storage/async-storage react-native-safe-area-context react-native-svg
 ```
 Then every time:
 ```powershell
