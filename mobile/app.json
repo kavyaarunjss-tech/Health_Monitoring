@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "AQ Health",
+    "slug": "aq-health",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#f4f6f9",
+    "android": {
+      "package": "com.kavya.aqhealth",
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#0b3c5d" }
+    },
+    "plugins": ["expo-notifications"]
+  }
+}
