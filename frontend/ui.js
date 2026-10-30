@@ -89,6 +89,7 @@ initFooter();
 if (window.Chart && Chart.defaults) {
   Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
   Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim() || "#566476";
+  Chart.defaults.borderColor = "#1f2b3d";                     /* gridlines on the dark theme */
 }
 
 /* sticky-banner self-test helper: the banner must sit directly under the top bar when the top bar is sticky (tablet and wider), else at the top */

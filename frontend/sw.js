@@ -7,7 +7,7 @@
      "Offline - showing data from <time>". A saved copy is never presented as current.
    - Never cached: login / account / push / e-mail endpoints (except who-is-logged-in), and every non-GET request.
    - Push: shows the alert notification; tapping it opens (or focuses) the alert page. */
-const VERSION = "v2";                 // v2 (26 Oct 2026): monochrome badge icon; bump when un-versioned files (icons, fonts) change
+const VERSION = "v3";                 // v2 (26 Oct 2026): monochrome badge icon; bump when un-versioned files (icons, fonts) change
 const STATIC = "aqi-static-" + VERSION, PAGES = "aqi-pages-" + VERSION, DATA = "aqi-data-" + VERSION;
 // never cached: login / verify / reset links, own account, push, e-mail, profile. /api/auth/session (who is logged in) IS kept network-first so an
 // offline page still shows the same profile's advice.

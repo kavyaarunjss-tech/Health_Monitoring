@@ -215,13 +215,13 @@ function drawChart(st) {
   const pers = av.map((f) => ({ x: f.horizon, y: f.persistence, t: f.target_end }));
   const a = th();
   const whiskers = av.map((f) => ({ label: "Likely range", data: [{ x: f.horizon, y: f.range_low, t: f.target_end }, { x: f.horizon, y: f.range_high, t: f.target_end }],
-    borderColor: "rgba(214,40,40,0.55)", borderWidth: 4, pointRadius: 0, showLine: true, order: 5, _whisker: true }));
+    borderColor: "rgba(255,138,42,0.45)", borderWidth: 4, pointRadius: 0, showLine: true, order: 5, _whisker: true }));
   const data = {
     datasets: [
-      { label: "Observed AQI", data: obs, borderColor: "#1f5fbf", backgroundColor: "#1f5fbf", pointRadius: 0, borderWidth: 2, tension: 0, order: 2 },
-      { label: "Forecast (+1, +6, +12, +24 h)", data: main, showLine: false, pointStyle: "circle", pointRadius: 7, backgroundColor: "#d62828", borderColor: "#d62828", order: 1 },
-      { label: "Persistence", data: pers, showLine: false, pointStyle: "crossRot", pointRadius: 6, borderColor: "#6b7580", order: 3 },
-      { label: "Your alert level (AQI " + a + ")", data: [{ x: -48, y: a }, { x: 26, y: a }], borderColor: "#e67e00", borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5, order: 4 },
+      { label: "Observed AQI", data: obs, borderColor: "#7cc4ff", backgroundColor: "#7cc4ff", pointRadius: 0, borderWidth: 2, tension: 0, order: 2 },
+      { label: "Forecast (+1, +6, +12, +24 h)", data: main, showLine: false, pointStyle: "circle", pointRadius: 7, backgroundColor: "#ff8a2a", borderColor: "#ff8a2a", order: 1 },
+      { label: "Persistence", data: pers, showLine: false, pointStyle: "crossRot", pointRadius: 6, borderColor: "#9aa8b8", order: 3 },
+      { label: "Your alert level (AQI " + a + ")", data: [{ x: -48, y: a }, { x: 26, y: a }], borderColor: "#ffb27a", borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5, order: 4 },
     ].concat(whiskers),
   };
   const options = {

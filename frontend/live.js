@@ -135,13 +135,13 @@ function drawChart(st) {
   const fc24 = st.forecasts.filter((f) => f.horizon <= MAIN_MAX_H);
   const main = fc24.map((f) => ({ x: f.horizon, y: f.aqi, t: f.target_end }));
   const whisk = fc24.map((f) => ({ label: "Likely range", data: [{ x: f.horizon, y: f.range_low, t: f.target_end }, { x: f.horizon, y: f.range_high, t: f.target_end }],
-    borderColor: "rgba(214,40,40,0.55)", borderWidth: 4, pointRadius: 0, showLine: true, _w: true }));
+    borderColor: "rgba(255,138,42,0.45)", borderWidth: 4, pointRadius: 0, showLine: true, _w: true }));
   const xmax = Math.max(26, Math.ceil(st.age_hours) + 3);          // up to +24 h; extended just enough to show "now" when the data is older than that
   const ymax = Math.max(60, ...fc24.map((f) => f.range_high), ...obs.filter((o) => o.y != null).map((o) => o.y)) * 1.1;
   const data = { datasets: [
-    { label: "Observed AQI", data: obs, borderColor: "#1f5fbf", backgroundColor: "#1f5fbf", pointRadius: 0, borderWidth: 2 },
-    { label: "Forecast (+1, +6, +12, +24 h)", data: main, showLine: false, pointRadius: 7, backgroundColor: "#d62828", borderColor: "#d62828" },
-    { label: "Now (data is " + Math.round(st.age_hours) + " h old)", data: [{ x: st.age_hours, y: 0 }, { x: st.age_hours, y: ymax }], borderColor: "#e67e00", borderWidth: 2, pointRadius: 0 },
+    { label: "Observed AQI", data: obs, borderColor: "#7cc4ff", backgroundColor: "#7cc4ff", pointRadius: 0, borderWidth: 2 },
+    { label: "Forecast (+1, +6, +12, +24 h)", data: main, showLine: false, pointRadius: 7, backgroundColor: "#ff8a2a", borderColor: "#ff8a2a" },
+    { label: "Now (data is " + Math.round(st.age_hours) + " h old)", data: [{ x: st.age_hours, y: 0 }, { x: st.age_hours, y: ymax }], borderColor: "#ffb27a", borderWidth: 2, pointRadius: 0 },
   ].concat(whisk) };
   const options = { responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
     scales: { x: { type: "linear", min: -96, max: xmax, title: { display: true, text: "Hours after the newest observation (0 = newest observation)" },

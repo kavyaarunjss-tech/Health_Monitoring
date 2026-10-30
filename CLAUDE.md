@@ -919,3 +919,11 @@ Test MAE / R2 / category accuracy / alert F1 (AQI>100):
 - How the CSH-AQI Model Works: https://claude.ai/code/artifact/f91fbf3a-0087-4761-942a-ed60e078c64a
 - Health Advisory Reference Framework: https://claude.ai/code/artifact/48a7f617-ac18-4951-98e9-e9b6de07cbff
 - CSH-AQI Literature Survey and Novelty Assessment: https://claude.ai/code/artifact/6655dbd7-7636-421a-9cc1-cea932fd7b64
+
+## Dark theme "Direction D" for the website (31 Oct 2026; presentation only)
+- Same look as the phone app (`mobile/`): one block at the END of `frontend/style.css` (selectors `:root:not(#_)` so it overrides the older light rules and
+  the older prefers-color-scheme rules). Always dark. Tokens: bg #0b1320, surface #131c2b, surface-2 #1c2738, text #f2f5f9, muted #9aa8b8, accent #7cc4ff,
+  CPCB colours brightened (#3fbf6f, #a8d64a, #f5c400, #ff8a2a, #d6363c, #a3262a). Primary buttons light with dark text. No ids, wording or logic changed.
+- Chart colours (app.js, live.js) and Chart.js gridlines (ui.js) adjusted for the dark background. Asset links `?v=20261031a`, service-worker cache v3.
+- Checked by screenshots only (replay page desktop + 390 px, login). The project's UI test suites were NOT re-run (FastAPI not installable in that session):
+  re-run test_readability.py (contrast scan) and the other UI tests before relying on them.
