@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create an account &middot; AQ &amp; Health Risk Framework</title>
+<link rel="icon" href="data:,">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0b3c5d">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AQ Health">
+<link rel="stylesheet" href="style.css?v=20261026i">
+</head>
+<body data-page="signup">
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar topbar-simple">
+  <div class="topbar-in">
+    <a class="brand" href="/" aria-label="Integrated Air Quality and Health Risk Prediction Framework, home"><span class="brand-text"><span class="brand-full">Integrated Air Quality &amp; Health Risk Prediction Framework</span><span class="brand-short" aria-hidden="true">AQ &amp; Health Risk Framework</span><span class="brand-sub">for Sustainable Urban Environments &middot; Karnataka</span></span></a>
+    <nav id="acctNav" class="acct-nav" aria-label="Account"></nav>
+  </div>
+</header>
+<main class="auth-shell" id="main">
+  <div class="card auth-card">
+    <div class="auth-head">
+      <p class="proj">Integrated Air Quality &amp; Health Risk Prediction Framework</p>
+      <p class="proj-sub">for Sustainable Urban Environments &middot; Karnataka</p>
+      <p class="tagline">CPCB AQI forecasts for 8 Karnataka stations with personal health advice.</p>
+    </div>
+    <h1>Create an account</h1>
+    <p class="small muted">Keeps your health profile and sends alerts to your own e-mail.</p>
+    <form id="signupForm" novalidate>
+      <label for="name">Name</label><input type="text" id="name" autocomplete="name" required maxlength="80">
+      <label for="email">E-mail</label><input type="email" id="email" autocomplete="email" required>
+      <label for="password">Password</label><input type="password" id="password" data-pw autocomplete="new-password" required minlength="8" aria-describedby="pwHint">
+      <p id="pwHint" class="field-hint">At least 8 characters.</p>
+      <label for="password2">Repeat password</label><input type="password" id="password2" data-pw autocomplete="new-password" required minlength="8">
+      <label class="check small"><input type="checkbox" data-toggle-pw> Show passwords</label>
+      <div class="consent">
+        <label class="check"><input type="checkbox" id="consent" required> <span>I agree that my health information is stored <b>only on this computer</b> and used <b>only to personalise</b> air-quality advice and alerts for me. I can delete my account and all its data at any time.</span></label>
+      </div>
+      <button type="submit">Create account</button>
+      <p id="msg" class="msg" role="status" aria-live="polite"></p>
+    </form>
+    <p class="auth-links">Already have an account? <a href="/login.html">Log in</a></p>
+    <p class="guest-link"><a href="/?guest=1">Try the demo without an account (guest)</a></p>
+  </div>
+</main>
+<footer class="site-foot" data-autofoot>
+  <div class="wrap foot-in">
+    <div>
+      <p class="foot-disc"><b>Not medical advice.</b> AQI forecasts come from a statistical model and can be wrong. Health messages are general guidance
+        from CPCB, MoHFW/NCDC and WHO; follow your doctor's advice. In an emergency call 112.</p>
+      <details id="sources" class="foot-more"><summary>Sources and full disclaimer</summary><p id="disclaimer"></p><ol id="refs"></ol></details>
+    </div>
+    <div class="foot-meta">
+      <p><b>Student research prototype</b><br>CSH-AQI forecasts of the CPCB AQI for 8 KSPCB stations in Karnataka.</p>
+      <p>Data: KSPCB stations via <a href="https://openaq.org" rel="noopener">OpenAQ</a>; weather: <a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>.</p>
+    </div>
+  </div>
+</footer>
+<script src="ui.js?v=20261026i"></script>
+<script src="account.js?v=20261026i"></script>
+</body>
+</html>

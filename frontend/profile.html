@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your profile &middot; AQ &amp; Health Risk Framework</title>
+<link rel="icon" href="data:,">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0b3c5d">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AQ Health">
+<link rel="stylesheet" href="style.css?v=20261026i">
+</head>
+<body data-page="profile">
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/" aria-label="Integrated Air Quality and Health Risk Prediction Framework, home"><span class="brand-text"><span class="brand-full">Integrated Air Quality &amp; Health Risk Prediction Framework</span><span class="brand-short" aria-hidden="true">AQ &amp; Health Risk Framework</span><span class="brand-sub">for Sustainable Urban Environments &middot; Karnataka</span></span></a>
+    <nav class="modeswitch" aria-label="Choose mode">
+      <a href="/"><span class="ms-ico" aria-hidden="true">&#9654;</span> Replay demo</a>
+      <a href="/live.html"><span class="ms-ico ms-live" aria-hidden="true">&#9679;</span> Live data</a>
+    </nav>
+    <nav id="acctNav" class="acct-nav" aria-label="Account"></nav>
+  </div>
+</header>
+<main class="profile-shell" id="main">
+  <div class="titlebar"><h1>Your profile</h1></div>
+  <p class="small muted">Your profile personalises the advice and the alerts. It is stored only on the computer running this app (not on this phone).</p>
+  <p id="topMsg" class="msg" role="status" aria-live="polite"></p>
+  <p id="confirmReminder" class="acct-box" hidden><b>Please confirm your e-mail.</b> We sent you a link. Alert e-mails are sent only after you click it
+    (check the spam folder too). You can use the website straight away.</p>
+
+  <form id="profileForm" novalidate>
+    <section class="card">
+      <h2>About you</h2>
+      <label for="pName">Name</label><input type="text" id="pName" autocomplete="name" maxlength="80" required>
+      <div class="kv"><span class="muted small">E-mail</span> <span id="pEmail"></span> <span id="verified"></span></div>
+      <div class="row"><button id="sendVerify" type="button" class="secondary" hidden>Send confirmation e-mail</button></div>
+      <p id="verifyMsg" class="msg small" role="status"></p>
+      <label for="age">Age (years)</label><input type="number" id="age" inputmode="numeric" min="0" max="120" step="1" aria-describedby="autoGroups">
+      <p id="autoGroups" class="small muted field-hint"></p>
+      <label for="station">Home station</label><select id="station"></select>
+    </section>
+
+    <section class="card">
+      <h2>Health conditions and situation</h2>
+      <fieldset id="conds"><legend>Tick all that apply</legend></fieldset>
+      <p id="groupsUsed" class="small"></p>
+      <p class="small muted">"Child" (under 14) follows our health reference. "Older adult" from 60 is a design choice of this project; the reference gives no age.</p>
+    </section>
+
+    <section class="card">
+      <h2>Alerts</h2>
+      <label for="alertFrom">Alert me when forecast AQI reaches</label><select id="alertFrom"></select>
+      <p id="alertInfo" class="small muted"></p>
+      <h3>Alerts by e-mail</h3>
+      <label class="check"><input type="checkbox" id="emailAlerts"> Live alerts for my home station</label>
+      <label class="check"><input type="checkbox" id="replayEmails"> Replay-demo alerts (subject starts with [REPLAY DEMO])</label>
+      <p id="emailNote" class="small muted"></p>
+
+      <h3>Alerts by WhatsApp</h3>
+      <label for="waNumber">WhatsApp number (optional)</label>
+      <input type="tel" id="waNumber" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210" aria-describedby="waHint">
+      <p id="waHint" class="field-hint">International format with the country code, e.g. +919876543210.</p>
+      <label class="check"><input type="checkbox" id="waAlerts"> Live alerts for my home station</label>
+      <label class="check"><input type="checkbox" id="waReplay"> Replay-demo alerts (message starts with [REPLAY DEMO])</label>
+      <p class="note-box small">WhatsApp is in Twilio test mode: send <b>'join twilio-trial'</b> to <b>+1 737 250 8034</b> first. Only ONE phone can receive
+        WhatsApp alerts at a time, and alerts are delivered only within 24 h of your last message to that number.
+        On a Twilio trial account WhatsApp can only send Twilio's own pre-approved template messages, not our alert text (see README).</p>
+      <div class="row"><button type="button" class="secondary" id="testWa">Send test WhatsApp</button></div>
+      <p id="waMsg" class="msg small" role="status" aria-live="polite"></p>
+      <p id="waLast" class="small" role="status" aria-live="polite"></p>
+
+      <h3>Alerts on this phone (push notifications)</h3>
+      <p class="small muted">Notifications on THIS phone or browser, even when the page is closed. The browser asks for permission once. These two
+        switches apply to this device only and take effect at once (no need to press Save).</p>
+      <label class="check"><input type="checkbox" id="pushLive"> Live alerts for my home station</label>
+      <label class="check"><input type="checkbox" id="pushReplay"> Replay-demo alerts (title starts with [REPLAY DEMO])</label>
+      <div class="row"><button type="button" class="secondary" id="testPush">Send test notification</button>
+        <button type="button" class="secondary" id="installHint">How to install the app</button></div>
+      <p id="pushMsg" class="msg small" role="status" aria-live="polite"></p>
+    </section>
+
+    <div class="savebar"><button type="submit">Save profile</button> <span id="saveMsg" class="msg" role="status" aria-live="polite"></span></div>
+    <p class="small muted">After saving you go to the replay demo.</p>
+  </form>
+
+  <section class="card weekly" id="weeklyCard" aria-label="This week's air and your health"><p class="small muted">Loading the weekly summary…</p></section>
+
+  <section class="card">
+    <h2>Your data</h2>
+    <p class="small">Your profile (name, e-mail, age, station, health conditions, alert settings) is stored only on the computer running this app (not on this phone), in <code>data/users.db</code>,
+      and used only to personalise advice and alerts. Your password is stored only as a one-way hash (Argon2).</p>
+  </section>
+
+  <section class="card danger">
+    <h2>Delete my account</h2>
+    <p class="small">Removes your account, profile, sessions and your alert history from this computer. This cannot be undone.</p>
+    <form id="deleteForm" novalidate>
+      <label for="delPassword">Type your password to confirm</label><input type="password" id="delPassword" autocomplete="current-password" required>
+      <button type="submit" class="danger-btn">Delete my account</button>
+      <p id="delMsg" class="msg" role="status"></p>
+    </form>
+  </section>
+  </main>
+<footer class="site-foot" data-autofoot>
+  <div class="wrap foot-in">
+    <div>
+      <p class="foot-disc"><b>Not medical advice.</b> AQI forecasts come from a statistical model and can be wrong. Health messages are general guidance
+        from CPCB, MoHFW/NCDC and WHO; follow your doctor's advice. In an emergency call 112.</p>
+      <details id="sources" class="foot-more"><summary>Sources and full disclaimer</summary><p id="disclaimer"></p><ol id="refs"></ol></details>
+    </div>
+    <div class="foot-meta">
+      <p><b>Student research prototype</b><br>CSH-AQI forecasts of the CPCB AQI for 8 KSPCB stations in Karnataka.</p>
+      <p>Data: KSPCB stations via <a href="https://openaq.org" rel="noopener">OpenAQ</a>; weather: <a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>.</p>
+    </div>
+  </div>
+</footer>
+<script src="ui.js?v=20261026i"></script>
+<script src="account.js?v=20261026i"></script>
+</body>
+</html>

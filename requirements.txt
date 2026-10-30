@@ -1,0 +1,18 @@
+pandas
+numpy
+scikit-learn
+lightgbm
+matplotlib
+openpyxl
+jupyter
+ipykernel
+fastapi
+uvicorn
+apscheduler
+requests
+argon2-cffi
+twilio
+# tests only
+httpx
+websocket-client
+pywebpush

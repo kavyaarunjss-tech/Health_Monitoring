@@ -1,0 +1,5 @@
+Data window: 2025-11-01 to 2026-07-22  (50674 station-hours)
+run info: {"python": "3.11.17", "pandas": "3.0.6", "sklearn": "1.9.1", "learner": "LightGBM", "git_commit": "0619e60b57569473f007c53ba42577b1a160ebff", "git_dirty": true}
+  h=1 val: seasonal features dropped (training < 1 year)
+h=1 val: fit rows 22478, eval rows 6552, 427s
+  h=1 test: seasonal features dropped (training < 1 year)

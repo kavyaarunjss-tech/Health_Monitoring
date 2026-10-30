@@ -1,0 +1,31 @@
+__pycache__/
+.ipynb_checkpoints/
+*.pkl
+.env
+data/live/
+data/archive_cache/
+data/aqi.db
+data/replay.db
+models/
+data/profile.json
+data/email_state.json
+data/email_log.jsonl
+data/replay_mail_rate.json
+data/scheduler_status.json
+data/update_log.txt
+data/aqi.db-shm
+data/aqi.db-wal
+frontend/_*
+screenshots_preview/
+
+data/users.db
+data/users.db-*
+
+# keep the official final predictions (7.9 MB) so replay mode works right after cloning; all other pickles stay ignored
+!results/final/csh_preds.pkl
+
+# WhatsApp (Twilio) channel: local log and rate-limit state
+data/whatsapp_log.jsonl
+data/whatsapp_rate.json
+data/push_log.jsonl
+data/push_rate.json

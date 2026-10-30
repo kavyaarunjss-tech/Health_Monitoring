@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replay demo &middot; AQ &amp; Health Risk Framework</title>
+<link rel="icon" href="data:,">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0b3c5d">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AQ Health">
+<link rel="stylesheet" href="style.css?v=20261026i">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/" aria-label="Integrated Air Quality and Health Risk Prediction Framework, home"><span class="brand-text"><span class="brand-full">Integrated Air Quality &amp; Health Risk Prediction Framework</span><span class="brand-short" aria-hidden="true">AQ &amp; Health Risk Framework</span><span class="brand-sub">for Sustainable Urban Environments &middot; Karnataka</span></span></a>
+    <nav class="modeswitch" aria-label="Choose mode">
+      <a href="/" aria-current="page"><span class="ms-ico" aria-hidden="true">&#9654;</span> Replay demo</a>
+      <a href="/live.html"><span class="ms-ico ms-live" aria-hidden="true">&#9679;</span> Live data</a>
+    </nav>
+    <nav id="acctNav" class="acct-nav" aria-label="Account"></nav>
+  </div>
+</header>
+<div id="banner" class="banner" role="status" data-stamp>
+  <span class="tag">REPLAY</span>
+  <span class="bn-main"><span class="bn-label">Simulated time </span><b id="simTime" class="t-long">-</b><b id="simTimeShort" class="t-short" aria-hidden="true">-</b></span>
+  <span class="bn-note">Not live data. Forecasts were made out-of-sample using only data available at that hour.</span>
+  <button id="openSettings" class="gear" type="button" aria-label="Open settings" aria-controls="settings" aria-expanded="false"><span aria-hidden="true">&#9881;</span><span class="gear-text">Settings</span></button>
+</div>
+
+<main class="wrap page" id="main">
+  <div class="page-head">
+    <h1>Replay demo</h1>
+    <p class="lead">A past period replayed hour by hour. Every forecast shown was made using only the data available at that hour.</p>
+  </div>
+
+  <section class="card controls" aria-label="Replay controls">
+    <div class="controls-grid">
+    <label class="station-pick">Station <select id="station"></select></label>
+    <div>
+    <input type="range" data-stamp id="slider" min="0" max="0" value="0" aria-label="Simulated hour">
+    <div class="row">
+      <button id="play" type="button">Play</button>
+      <button id="prev" type="button" class="secondary" title="One hour back">-1 h</button>
+      <button id="next" type="button" class="secondary" title="One hour forward">+1 h</button>
+      <select id="speed" aria-label="Playback speed">
+        <option value="1">1 h/s</option>
+        <option value="3" selected>3 h/s</option>
+        <option value="6">6 h/s</option>
+        <option value="12">12 h/s</option>
+      </select>
+    </div>
+    </div>
+    </div>
+    <button id="jumpEvent" type="button" class="secondary wide-btn" title="Demo shortcut: jump to 6 h before the next AQI &gt; 100 event (it looks ahead; it is not part of the forecast)">Skip to next pollution event (demo)</button>
+    <p id="jumpMsg" class="small muted" role="status"></p>
+    <details class="opts">
+      <summary>Replay period and notes</summary>
+      <label>Period <select id="period"></select></label>
+      <p id="periodInfo" class="small muted"></p>
+      <p class="small muted">"Skip to next pollution event" is a demo shortcut: it looks ahead to find an AQI &gt; 100 event and jumps to 6 h before it. It is not part of the forecast.</p>
+    </details>
+  </section>
+
+  <div class="dash">
+  <div class="dash-main">
+  <section class="card now" id="stationCard" aria-live="polite" data-stamp>
+    <div class="now-top">
+      <div>
+        <h2 id="stationTitle">-</h2>
+        <div class="small muted">Data up to <span id="nowTime">-</span> IST (hour ending)</div>
+      </div>
+      <div id="nowExtra" class="small now-pollutant"></div>
+    </div>
+    <div class="now-main">
+      <div id="nowAqi" class="big">-</div>
+      <div class="now-side">
+        <div id="nowCat" class="catpill">-</div>
+        <div class="small muted">CPCB AQI, observed</div>
+      </div>
+    </div>
+    <div id="nowScale" class="scalebar"></div>
+  </section>
+
+  <section class="fc-section" aria-label="Forecasts at fixed horizons" data-stamp>
+    <h2 class="sec">Forecast</h2>
+    <div id="strip" class="strip" role="list" aria-label="Forecast cards"></div>
+    <p id="fcNote" class="small muted"></p>
+  </section>
+  </div>
+  <aside class="dash-side" aria-label="Personal advice">
+    <section class="card foryou">
+      <h2 class="card-title">Personal advice</h2>
+      <div id="nowAdvice" class="nowadvice"></div>
+      <p class="foot-note">Based on your profile and the higher of the current AQI and the next 24 h forecast. Full advice in the Health advice tab.</p>
+    </section>
+  </aside>
+  </div>
+
+  <section class="card stations" id="stationsCard" aria-label="All stations now"><p class="small muted">Loading all stations…</p></section>
+
+  <section class="card weekly" id="weeklyCard" aria-label="This week's air and your health"><p class="small muted">Loading the weekly summary…</p></section>
+
+  <section class="card tabs">
+    <div class="tablist" role="tablist" aria-label="Views">
+      <button role="tab" id="tabbtn-forecast" aria-controls="tab-forecast" aria-selected="true" type="button">Forecast</button>
+      <button role="tab" id="tabbtn-advice" aria-controls="tab-advice" aria-selected="false" type="button">Health advice</button>
+      <button role="tab" id="tabbtn-pollutants" aria-controls="tab-pollutants" aria-selected="false" type="button">Pollutants</button>
+    </div>
+
+    <div id="tab-forecast" role="tabpanel" aria-labelledby="tabbtn-forecast" data-stamp>
+      <div class="chartbox"><canvas id="chart" aria-label="AQI chart: last 48 hours and forecast"></canvas></div>
+      <p class="small muted">Line = observed AQI. Dots = model forecasts at four fixed horizons (+1, +6, +12, +24 h); hours in between are not forecast. Vertical bars = likely range. Crosses = persistence (AQI stays as now). Dashed line = your alert level.</p>
+    </div>
+
+    <div id="tab-advice" role="tabpanel" aria-labelledby="tabbtn-advice" hidden data-stamp>
+      <div id="adviceBox" class="small muted">-</div>
+      <p id="disclaimer2" class="small disclaimer"></p>
+      <details class="small"><summary>Sources</summary><ol id="refs2"></ol></details>
+    </div>
+
+    <div id="tab-pollutants" role="tabpanel" aria-labelledby="tabbtn-pollutants" hidden data-stamp>
+      <div id="pollBars"></div>
+      <p class="small muted">Each bar is the CPCB sub-index on the 0 to 500 scale (coloured bands: Good, Satisfactory, Moderate, Poor, Very Poor, Severe). It is computed from the 24 h average (PM2.5, PM10, NO&#8322;, SO&#8322;) or 8 h average (O&#8323;, CO) shown next to it, not from the current hourly value, which is listed below for reference. The highest sub-index is the AQI and names the main pollutant.</p>
+    </div>
+  </section>
+
+  <details class="card details" id="details" data-stamp>
+    <summary>Details: full forecast table, how earlier forecasts did, how to read the ranges</summary>
+    <h3>Forecasts made at this hour</h3>
+    <div class="tablewrap"><table id="fcTable">
+      <thead><tr><th>Ahead</th><th>For hour ending</th><th>Forecast AQI (likely range)</th><th>Category</th><th>Main pollutant</th><th>Persistence</th><th>Confidence</th><th>Your alert</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="small muted"><b>Likely alert</b> = forecast is at or above your alert level. <b>Possible alert</b> = the forecast is below it, but the upper end of the
+      likely range reaches it. Possible alerts catch more events but are more often false alarms.</p>
+    <h3>Experimental longer horizons (+36, +48, +72 h)</h3>
+    <p class="small muted">No consistent skill over persistence in our tests, shown for transparency only. They are never used for the cards, the advice or any alert.</p>
+    <div class="tablewrap"><table id="expTable">
+      <thead><tr><th>Ahead</th><th>For hour ending</th><th>Forecast AQI</th><th>Likely range</th><th>Persistence</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <h3>How earlier forecasts did (now known)</h3>
+    <div class="tablewrap"><table id="rzTable">
+      <thead><tr><th>Ahead</th><th>Made at</th><th>Forecast</th><th>Persistence</th><th>Actual AQI now</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <h3>How to read the ranges and confidence</h3>
+    <p class="small">The likely range is built from past forecast errors: 80% of earlier forecasts at that horizon were off by an amount inside the bar; about one in five actual values fell outside. Confidence follows the horizon: high up to +6 h, moderate for +12 to +24 h. The main pages show only these four horizons (+1, +6, +12, +24 h). Longer horizons are listed above as experimental: in our tests +36 h was mixed (better than persistence in the validation period, not in the test period) and +48/+72 h had no consistent skill over persistence, so they are shown for transparency only. Alerts: "Likely" pop-ups go up to +24 h, "Possible" only up to +12 h. The personal alert thresholds are a design decision derived from the cited sources, not official triggers.</p>
+  </details>
+</main>
+
+<div id="scrim" hidden></div>
+<aside id="settings" class="drawer" hidden aria-label="Settings" role="dialog">
+  <div class="drawer-head"><h2>Settings</h2><button id="closeSettings" type="button" class="secondary" aria-label="Close settings">Close</button></div>
+
+  <h3>Your profile</h3>
+  <p id="acctBox" class="acct-box" hidden></p>
+  <div id="guestProfile">
+  <p class="small muted">Guest mode: saved only in this browser. <a href="/login.html">Log in</a> or <a href="/signup.html">sign up</a> to keep your profile in an account and get alerts by e-mail.</p>
+  <fieldset>
+    <legend>Health conditions / situation</legend>
+    <label class="check"><input type="checkbox" name="grp" value="lung"> Lung disease (asthma/COPD)</label>
+    <label class="check"><input type="checkbox" name="grp" value="heart"> Heart disease</label>
+    <label class="check"><input type="checkbox" name="grp" value="child"> Child (under 14)</label>
+    <label class="check"><input type="checkbox" name="grp" value="older"> Older adult</label>
+    <label class="check"><input type="checkbox" name="grp" value="pregnant"> Pregnant</label>
+    <label class="check"><input type="checkbox" name="grp" value="outdoor_worker"> Outdoor worker</label>
+    <label class="check"><input type="checkbox" name="grp" value="athlete"> Regular outdoor exerciser</label>
+  </fieldset>
+  <label>Alert me when forecast AQI reaches
+    <select id="alertFrom"></select>
+  </label>
+  <p id="thresholdInfo" class="small muted"></p>
+  </div>
+  <div class="row">
+    <button id="demoProfile" type="button">Use demo profile (asthma, alert from 101)</button>
+    <button id="enableNotif" type="button" class="secondary">Enable browser notifications</button>
+    <button id="testNotif" type="button" class="secondary">Test notification</button>
+  </div>
+  <p id="notifStatus" class="small muted"></p>
+
+  <h3>Alert pop-ups</h3>
+  <label class="check"><input type="checkbox" id="pauseOnAlert" checked> Pause the replay when an alert is raised (recommended)</label>
+  <p class="small muted">When on, the replay stops and the pop-up waits for "Continue replay" or "Dismiss". When off, each pop-up stays visible for at least 10 seconds,
+    and shows "(target hour now passed)" instead of disappearing when its hour goes by.</p>
+
+  <h3>E-mail alerts</h3>
+  <div id="guestEmail">
+  <p class="small muted">Stored only on this computer.</p>
+  <label>E-mail address (optional; otherwise ALERT_EMAIL_TO from .env is used)
+    <input type="email" id="emailAddr" autocomplete="email" placeholder="you@example.com">
+  </label>
+  <div class="row"><button id="saveServerProfile" type="button">Save profile for e-mail alerts</button></div>
+  </div>
+  <label class="check"><input type="checkbox" id="emailReplay"> Also e-mail replay alerts (subject starts with [REPLAY DEMO])</label>
+  <p id="emailStatus" class="small muted"></p>
+</aside>
+
+<div id="toasts" aria-live="assertive"></div>
+
+<footer class="site-foot">
+  <div class="wrap foot-in">
+    <div>
+      <p class="foot-disc"><b>Not medical advice.</b> AQI forecasts come from a statistical model and can be wrong. Health messages are general guidance
+        from CPCB, MoHFW/NCDC and WHO; follow your doctor's advice. In an emergency call 112.</p>
+      <details id="sources" class="foot-more"><summary>Sources and full disclaimer</summary><p id="disclaimer"></p><ol id="refs"></ol></details>
+      <p>Thresholds for personal alerts are a design decision derived from these sources, not official alert triggers. Forecasts appear only
+        for hours where the true AQI later turned out valid (a limitation of replay; a live system would also forecast through data gaps).</p>
+    </div>
+    <div class="foot-meta">
+      <p><b>Student research prototype</b><br>CSH-AQI forecasts of the CPCB AQI for 8 KSPCB stations in Karnataka.</p>
+      <p>Data: KSPCB stations via <a href="https://openaq.org" rel="noopener">OpenAQ</a>; weather: <a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="vendor/chart.umd.min.js?v=20261026i"></script>
+<script src="ui.js?v=20261026i"></script>
+<script src="stations.js?v=20261026i"></script>
+<script src="stations_each.js?v=20261026i"></script>
+<script src="stations_bycat.js?v=20261026i"></script>
+<script src="app.js?v=20261026i"></script>
+</body>
+</html>

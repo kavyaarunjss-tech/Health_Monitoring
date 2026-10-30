@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live data &middot; AQ &amp; Health Risk Framework</title>
+<link rel="icon" href="data:,">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0b3c5d">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AQ Health">
+<link rel="stylesheet" href="style.css?v=20261026i">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/" aria-label="Integrated Air Quality and Health Risk Prediction Framework, home"><span class="brand-text"><span class="brand-full">Integrated Air Quality &amp; Health Risk Prediction Framework</span><span class="brand-short" aria-hidden="true">AQ &amp; Health Risk Framework</span><span class="brand-sub">for Sustainable Urban Environments &middot; Karnataka</span></span></a>
+    <nav class="modeswitch" aria-label="Choose mode">
+      <a href="/"><span class="ms-ico" aria-hidden="true">&#9654;</span> Replay demo</a>
+      <a href="/live.html" aria-current="page"><span class="ms-ico ms-live" aria-hidden="true">&#9679;</span> Live data</a>
+    </nav>
+    <nav id="acctNav" class="acct-nav" aria-label="Account"></nav>
+  </div>
+</header>
+<div id="banner" class="banner banner-none" role="status" data-wrap>
+  <span class="tag">LIVE</span>
+  <span id="bannerText" class="bn-main">Loading...</span>
+  <button id="openSettings" class="gear" type="button" aria-label="Open settings" aria-controls="settings" aria-expanded="false"><span aria-hidden="true">&#9881;</span><span class="gear-text">Settings</span></button>
+</div>
+
+<main class="wrap page" id="main">
+  <div class="page-head">
+    <h1>Live data</h1>
+    <p class="lead">The newest KSPCB observations (via OpenAQ) and the CSH-AQI forecasts made from them. Always check how old the data is.</p>
+  </div>
+
+  <section class="card controls" aria-label="Station">
+    <div class="controls-grid"><label class="station-pick">Station <select id="station"></select></label></div>
+  </section>
+
+  <div class="dash">
+  <div class="dash-main">
+  <section class="card now" id="stationCard" aria-live="polite">
+    <div class="now-top">
+      <div>
+        <h2 id="stationTitle">-</h2>
+        <div class="small muted">Last observation: hour ending <span id="lastTime">-</span> IST</div>
+      </div>
+      <div id="nowExtra" class="small now-pollutant"></div>
+    </div>
+    <div class="now-main">
+      <div id="lastAqi" class="big">-</div>
+      <div class="now-side">
+        <div id="lastCat" class="catpill">-</div>
+        <div class="small muted">CPCB AQI, last observed</div>
+      </div>
+    </div>
+    <div id="nowScale" class="scalebar"></div>
+    <p id="ageInfo" class="small muted"></p>
+    <ul id="warnings" class="warnlist"></ul>
+  </section>
+
+  <section class="fc-section" aria-label="Forecasts at fixed horizons after the last observation">
+    <h2 class="sec">Forecast (counted from the last observation)</h2>
+    <div id="strip" class="strip" role="list" aria-label="Forecast cards"></div>
+    <p class="small muted">Each card is a fixed horizon (+1, +6, +12, +24 h) after the last observation. Cards for times that have already passed are greyed. Longer horizons are listed under Details as experimental.</p>
+  </section>
+  </div>
+  <aside class="dash-side" aria-label="Personal advice">
+    <section class="card foryou">
+      <h2 class="card-title">Personal advice</h2>
+      <div id="nowAdvice" class="nowadvice"></div>
+      <p class="foot-note">Based on your profile. With old data it describes the last known conditions only. Full advice in the Health advice tab.</p>
+    </section>
+  </aside>
+  </div>
+
+  <section class="card stations" id="stationsCard" aria-label="All stations now"><p class="small muted">Loading all stations…</p></section>
+
+  <section class="card weekly" id="weeklyCard" aria-label="This week's air and your health"><p class="small muted">Loading the weekly summary…</p></section>
+
+  <section class="card tabs">
+    <div class="tablist" role="tablist" aria-label="Views">
+      <button role="tab" id="tabbtn-forecast" aria-controls="tab-forecast" aria-selected="true" type="button">Forecast</button>
+      <button role="tab" id="tabbtn-advice" aria-controls="tab-advice" aria-selected="false" type="button">Health advice</button>
+      <button role="tab" id="tabbtn-pollutants" aria-controls="tab-pollutants" aria-selected="false" type="button">Pollutants</button>
+    </div>
+
+    <div id="tab-forecast" role="tabpanel" aria-labelledby="tabbtn-forecast">
+      <div class="chartbox"><canvas id="chart" aria-label="AQI chart: observed and forecast, measured from the last observation"></canvas></div>
+      <p class="small muted">0 = the newest observation. The orange vertical line is the real "now": the gap between 0 and "now" is the age of the data. Dots = forecasts at the four fixed horizons after the last observation (+1, +6, +12, +24 h). Bars = likely range (80% of past errors fell inside). Dots to the left of "now" are for times that have already passed.</p>
+    </div>
+
+    <div id="tab-advice" role="tabpanel" aria-labelledby="tabbtn-advice" hidden>
+      <h2 id="adviceTitle">Advice for you</h2>
+      <div id="adviceBox" class="small muted">-</div>
+      <p id="disclaimer2" class="small disclaimer"></p>
+      <details class="small"><summary>Sources</summary><ol id="refs2"></ol></details>
+    </div>
+
+    <div id="tab-pollutants" role="tabpanel" aria-labelledby="tabbtn-pollutants" hidden>
+      <div id="pollBars"></div>
+      <p class="small muted">Values are from the last observed hour. Each bar is the CPCB sub-index on the 0 to 500 scale, computed from the 24 h (or 8 h) average shown next to it, not from the hourly value listed below it. The highest sub-index is the AQI and names the main pollutant.</p>
+    </div>
+  </section>
+
+  <details class="card details" id="details">
+    <summary>Details: full forecast table and how to read it</summary>
+    <h3>Forecasts</h3>
+    <div class="tablewrap"><table id="fcTable">
+      <thead><tr><th>Horizon (after last obs.)</th><th>For hour ending</th><th>Relative to now</th><th>Forecast AQI (likely range)</th><th>Category</th><th>Method</th><th>Confidence</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="small muted">Confidence follows the horizon counted from the last observation: high up to +6 h, moderate for +12 to +24 h. The likely range comes from past forecast errors (80% of them fell inside). Longer horizons are only in the experimental table below: in our tests +36 h was mixed and +48/+72 h had no consistent skill over persistence.</p>
+    <h3>Experimental longer horizons (+36, +48, +72 h)</h3>
+    <p class="small muted">No consistent skill over persistence in our tests, shown for transparency only. They are never used for the cards, the advice or any alert.
+      Persistence here is the last observed AQI.</p>
+    <div class="tablewrap"><table id="expTable">
+      <thead><tr><th>Ahead</th><th>For hour ending</th><th>Forecast AQI</th><th>Likely range</th><th>Persistence</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    
+  </details>
+</main>
+
+<div id="scrim" hidden></div>
+<aside id="settings" class="drawer" hidden aria-label="Settings" role="dialog">
+  <div class="drawer-head"><h2>Settings</h2><button id="closeSettings" type="button" class="secondary" aria-label="Close settings">Close</button></div>
+  <h3>Your profile</h3>
+  <p id="acctBox" class="acct-box" hidden></p>
+  <p id="guestNote" class="small muted">Guest mode: the profile and alert level are shared with the Replay page (saved in this browser). <span id="profileInfo"></span>
+    Change them in the <a href="/">Replay page</a> settings, or <a href="/login.html">log in</a> to use your account profile.</p>
+  <h3>Automatic updates</h3>
+  <p id="updateInfo" class="small muted">Checking...</p>
+  <h3>E-mail alerts</h3>
+  <p id="emailNote" class="small muted">E-mail alerts are paused while data is older than 12 h.</p>
+</aside>
+
+<footer class="site-foot">
+  <div class="wrap foot-in">
+    <div>
+      <p class="foot-disc"><b>Not medical advice.</b> AQI forecasts come from a statistical model and can be wrong. Health messages are general guidance
+        from CPCB, MoHFW/NCDC and WHO; follow your doctor's advice. In an emergency call 112.</p>
+      <details id="sources" class="foot-more"><summary>Sources and full disclaimer</summary><p id="disclaimer"></p><ol id="refs"></ol></details>
+    </div>
+    <div class="foot-meta">
+      <p><b>Student research prototype</b><br>CSH-AQI forecasts of the CPCB AQI for 8 KSPCB stations in Karnataka.</p>
+      <p>Data: KSPCB stations via <a href="https://openaq.org" rel="noopener">OpenAQ</a>; weather: <a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="vendor/chart.umd.min.js?v=20261026i"></script>
+<script src="ui.js?v=20261026i"></script>
+<script src="stations.js?v=20261026i"></script>
+<script src="stations_each.js?v=20261026i"></script>
+<script src="stations_bycat.js?v=20261026i"></script>
+<script src="live.js?v=20261026i"></script>
+</body>
+</html>

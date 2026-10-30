@@ -1,0 +1,34 @@
+{
+ "started": "2026-10-15T22:54:04",
+ "python": "3.11.17",
+ "numpy": "2.4.6",
+ "pandas": "3.0.6",
+ "sklearn": "1.9.1",
+ "scipy": "1.17.1",
+ "learner": "LightGBM",
+ "git_commit": "97812eb6f5977076e9ef00f04ee7644dec235a3c",
+ "git_dirty": true,
+ "horizons": [
+  1,
+  6,
+  12,
+  24
+ ],
+ "FAST": false,
+ "n_iter": 300,
+ "n_folds": 4,
+ "learning_rate": 0.05,
+ "num_leaves": 31,
+ "min_samples_leaf": 40,
+ "l2": 1.0,
+ "seeds": "Hybrid: stage A seed 0, stage C seed 1; Direct GBM seed 0; members share the configuration",
+ "split": {
+  "val_start": "2026-04-17 07:00:00",
+  "test_start": "2026-05-29 14:00:00",
+  "test_end": "2026-07-21 23:00:00"
+ },
+ "input_file": "data\\processed_user\\hourly_user.pkl",
+ "input_sha256": "8a198f040096b2402aaa5173890cc9758badef77fec0f6ac0d2e100608a4d9ec",
+ "lightgbm": "4.7.0",
+ "finished": "2026-10-15T23:25:28"
+}
