@@ -50,15 +50,30 @@ def archive_sensors(location_id):
 
 
 def get(session, url, **params):
-    for attempt in range(5):
-        r = session.get(url, params=params, timeout=60)
-        if r.status_code == 429:  # rate limit: wait for the window to reset
-            time.sleep(30)
-            continue
-        r.raise_for_status()
-        time.sleep(PAUSE)
-        return r.json()
-    raise RuntimeError(f"rate-limited too long: {url}")
+    """GET with retries: rate limit (429) -> wait 30 s; OpenAQ server errors (5xx) or a dropped connection -> wait 5, 10, 20, 30 s.
+    A 4xx other than 429 (e.g. a bad key) is not retried."""
+    waits = [5, 10, 20, 30]
+    last = None
+    for attempt in range(6):
+        try:
+            r = session.get(url, params=params, timeout=60)
+        except requests.RequestException as e:          # timeout / connection reset
+            last = f"connection problem ({e.__class__.__name__})"
+        else:
+            if r.status_code == 429:  # rate limit: wait for the window to reset
+                last = "rate limit (429)"
+                time.sleep(30)
+                continue
+            if r.status_code >= 500:                     # temporary OpenAQ server error
+                last = f"OpenAQ server error {r.status_code}"
+            else:
+                r.raise_for_status()
+                time.sleep(PAUSE)
+                return r.json()
+        if attempt < len(waits):
+            print(f"   {last}; retrying in {waits[attempt]} s ...", flush=True)
+            time.sleep(waits[attempt])
+    raise RuntimeError(f"{last} after several retries: {url}")
 
 
 def sensor_readings(session, sensor_id, since):
@@ -82,19 +97,31 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     s = requests.Session()
     s.headers["X-API-Key"] = read_key()
+    skipped = []
     for lid in a.stations:
         cols = {}
         for param, sid in archive_sensors(lid).items():
-            rows = sensor_readings(s, int(sid), since)
+            try:
+                rows = sensor_readings(s, int(sid), since)
+            except RuntimeError as e:                    # one sensor keeps failing: skip it, do not stop the whole update
+                print(f"   WARNING {lid} {param} (sensor {sid}) skipped: {e}", flush=True)
+                skipped.append(f"{lid} {param}")
+                continue
             if rows:
                 df = pd.DataFrame(rows, columns=["t", "value"]).drop_duplicates("t")
                 df["t"] = pd.to_datetime(df["t"], utc=True).dt.tz_convert("Asia/Kolkata")
                 cols[param] = df.set_index("t")["value"]
+        if not cols:                                     # nothing new for this station: keep its previous file
+            print(f"{lid}: no readings fetched; previous file kept")
+            continue
         wide = pd.DataFrame(cols).sort_index()
         wide.index.name = "datetimeLocal"
         wide.insert(0, "location_id", lid)
         wide.to_csv(OUT / f"api_15min_{lid}.csv")
         print(f"{lid}: {len(wide)} readings, {wide.index.min()} -> {wide.index.max()}")
+    if skipped:
+        print(f"Done with {len(skipped)} sensor(s) skipped after retries ({', '.join(skipped)}); "
+              "run the update again later to fill them in.")
 
 
 if __name__ == "__main__":
