@@ -4,8 +4,9 @@ import { View, Text, TextInput, Switch, StyleSheet } from 'react-native';
 import { C, STATIONS, GROUPS, ALERT_CHOICES, defaultAlert, alertLevel } from './theme';
 import { Card, H2, Muted, Chip, Btn, Banner } from './ui';
 import { offlineAvailable, isOffline, OFFLINE_SERVER } from './api';
+import { mailAvailable, mailStatus, saveSender, clearSender, validEmail } from './mail';
 
-export default function ProfileScreen({ initial, welcome, onSave, onTestServer, onTestNotification }) {
+export default function ProfileScreen({ initial, welcome, onSave, onTestServer, onTestNotification, onTestMail, onSummaryMail }) {
   const [p, setP] = useState(initial);
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -17,6 +18,40 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
     const groups = p.groups.includes(g) ? p.groups.filter((x) => x !== g) : p.groups.concat(g);
     const d = defaultAlert(groups);
     setP((x) => ({ ...x, groups, alertOverride: x.alertOverride && x.alertOverride < d ? x.alertOverride : null }));
+  };
+
+  const [mail, setMail] = useState(mailStatus());
+  const [sender, setSender] = useState(mailStatus().sender || '');
+  const [appPass, setAppPass] = useState('');
+  const [mailMsg, setMailMsg] = useState(null);
+  const [mailBusy, setMailBusy] = useState(false);
+  const canMail = mail.configured && validEmail(p.email);
+
+  const saveMailSender = () => {
+    const err = saveSender(sender.trim() || p.email.trim(), appPass);
+    if (err) {
+      setMailMsg({ ok: false, text: err });
+      return;
+    }
+    setAppPass('');
+    setMail(mailStatus());
+    setMailMsg({ ok: true, text: 'Sending account saved on this phone. Now tap "Send test e-mail".' });
+  };
+  const removeMailSender = () => {
+    clearSender();
+    setMail(mailStatus());
+    setMailMsg({ ok: true, text: 'Sending account removed from this phone.' });
+  };
+  const runMail = async (fn) => {
+    if (!validEmail(p.email)) {
+      setMailMsg({ ok: false, text: 'Enter your e-mail address first.' });
+      return;
+    }
+    setMailBusy(true);
+    setMailMsg({ ok: true, text: 'Sending...' });
+    const r = await fn(p);
+    setMailMsg(r);
+    setMailBusy(false);
   };
 
   const testServer = async () => {
@@ -70,6 +105,74 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
         <Row label="Phone notifications" value={p.notify} onChange={(v) => set('notify', v)} />
         <Row label="Pause the replay when an alert comes" value={p.pauseOnAlert} onChange={(v) => set('pauseOnAlert', v)} />
         <Btn title="Send a test notification" kind="secondary" small onPress={onTestNotification} style={{ marginTop: 10 }} />
+      </Card>
+
+      <Card>
+        <H2>E-mail alerts</H2>
+        <Text style={st.label}>Your e-mail (alerts and health summaries are sent here)</Text>
+        <TextInput
+          value={p.email}
+          onChangeText={(v) => set('email', v)}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          placeholder="you@gmail.com"
+          placeholderTextColor={C.faint}
+          style={st.input}
+        />
+        {p.email && !validEmail(p.email) ? <Text style={st.err}>This does not look like an e-mail address.</Text> : null}
+        {!mailAvailable() ? (
+          <Muted>E-mail is sent by the phone itself, so it works in the Android Studio app (not in Expo Go).</Muted>
+        ) : (
+          <View>
+            <Row label="E-mail me air quality alerts" value={p.emailAlerts} onChange={(v) => set('emailAlerts', v)} />
+            <Muted>Sent with the phone alert: forecast, your personal advice and the sources. At most one per minute; the same alert is never sent twice.</Muted>
+
+            <Text style={[st.label, { marginTop: 16 }]}>Sending Gmail account</Text>
+            {mail.configured ? (
+              <View>
+                <Text style={st.ok}>{'Ready: e-mails are sent from ' + mail.sender}</Text>
+                <Btn title="Remove sending account" kind="ghost" small onPress={removeMailSender} style={{ marginTop: 4, alignSelf: 'flex-start' }} />
+              </View>
+            ) : (
+              <View>
+                <Muted>
+                  Alerts are sent from a Gmail account (it can be your own). Gmail needs an App password: turn on 2-Step Verification, then open
+                  myaccount.google.com/apppasswords, create one named "AQ Health" and paste the 16 letters here. Your normal password will not work.
+                </Muted>
+                <TextInput
+                  value={sender}
+                  onChangeText={setSender}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  placeholder={p.email || 'sender@gmail.com'}
+                  placeholderTextColor={C.faint}
+                  style={[st.input, { marginTop: 10 }]}
+                />
+                <TextInput
+                  value={appPass}
+                  onChangeText={setAppPass}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder="App password (16 letters)"
+                  placeholderTextColor={C.faint}
+                  style={[st.input, { marginTop: 10 }]}
+                />
+                <Btn title="Save sending account" kind="secondary" small onPress={saveMailSender} style={{ marginTop: 10 }} />
+                <Muted>Stored only in this app's private storage on the phone; never shown again and never sent anywhere except Gmail.</Muted>
+              </View>
+            )}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
+              <Btn title="Send test e-mail" kind="secondary" small disabled={!canMail || mailBusy} onPress={() => runMail(onTestMail)} style={{ marginRight: 8, marginTop: 6 }} />
+              {onSummaryMail ? (
+                <Btn title="E-mail me a health summary now" kind="secondary" small disabled={!canMail || mailBusy} onPress={() => runMail(onSummaryMail)} style={{ marginTop: 6 }} />
+              ) : null}
+            </View>
+          </View>
+        )}
+        {mailMsg ? <Banner kind={mailMsg.ok ? 'info' : 'danger'}>{mailMsg.text}</Banner> : null}
       </Card>
 
       <Card>
@@ -142,5 +245,7 @@ const st = StyleSheet.create({
   label: { fontWeight: '600', color: C.soft, marginBottom: 10, fontSize: 14 },
   input: { borderWidth: 1, borderColor: C.card2, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: C.text, backgroundColor: C.bg },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  err: { color: C.danger, fontSize: 13, marginTop: 6 },
+  ok: { color: C.good, fontSize: 15, fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: C.card2, marginTop: 10 },
 });

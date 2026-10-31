@@ -10,6 +10,7 @@ import { C, HOUR, toMs, labelFromMs, fmtTime, fmtDay, fmtClock, catOf, catRank, 
 import { api, setServer, getServer, guessServer } from './src/api';
 import { loadAll, saveAll } from './src/store';
 import { initNotifications, notify, askPermission } from './src/notify';
+import { mailAvailable, mailStatus, validEmail, sendMail, queueAlertMail, composeAlert, composeSummary, composeTest } from './src/mail';
 import HomeScreen, { ReplayBar } from './src/HomeScreen';
 import AdviceScreen from './src/AdviceScreen';
 import StationsScreen from './src/StationsScreen';
@@ -30,6 +31,8 @@ const DEFAULT_PROFILE = {
   mode: 'replay',
   period: 'validation',
   server: '',
+  email: '',
+  emailAlerts: false,
 };
 const RANK = { possible: 1, likely: 2 };
 const COOLDOWN_MS = 12 * HOUR;
@@ -289,6 +292,7 @@ function Main() {
       stationName: s.station_name,
       issued: s.sim_time_end,
       alertFrom,
+      personal: s.personal,
       lines: (s.personal && s.personal.short) || [],
       actions: (s.personal && s.personal.top3) || [],
     };
@@ -299,6 +303,20 @@ function Main() {
       ' for ' + fmtTime(f.target_end) + ' (+' + f.horizon + ' h)' + (f.dominant ? ', mainly ' + pname(f.dominant) : '') + '. ' +
       (s.personal && s.personal.top3 && s.personal.top3[0] ? s.personal.top3[0].text : '');
     if (profile.notify) notify('[REPLAY DEMO] ' + (escalation ? 'UPDATE: ' : '') + title + ' · ' + stationShort(s.station), body);
+    if (profile.emailAlerts && validEmail(profile.email) && mailAvailable() && mailStatus().configured) {
+      queueAlertMail(
+        {
+          key: [s.station, s.sim_time_end, best.level].join('|'),
+          to: profile.email,
+          mail: composeAlert(a, profile, meta, true),
+          rank,
+          level: best.level,
+          aqi: f.aqi,
+          escalation,
+        },
+        (r) => showToast(r.ok ? 'Alert e-mail sent to ' + profile.email : 'Alert e-mail not sent: ' + r.message),
+      );
+    }
     if (profile.pauseOnAlert) {
       setPlaying(false);
       setAlert(a);
@@ -365,6 +383,23 @@ function Main() {
     showToast(ok ? 'Test notification sent' : 'Notifications are not allowed. Allow them in the phone settings.');
   };
 
+  const testMail = async (p) => {
+    const r = await sendMail(p.email, composeTest(p, mailStatus().sender));
+    return { ok: r.ok, text: r.ok ? 'Test e-mail sent to ' + p.email + '. Check the inbox (and the Spam folder the first time).' : r.message };
+  };
+
+  const summaryMail = async (p) => {
+    if (!vm) return { ok: false, text: 'No air quality data loaded yet. Open the Home tab first.' };
+    let wk = week.data;
+    try {
+      wk = await api.weekly(profile.station, mode, mode === 'replay' ? label : '', groups);
+    } catch (e) {
+      // the summary is still useful without the week
+    }
+    const r = await sendMail(p.email, composeSummary(vm, wk, { ...profile, name: p.name }, meta, alertFrom));
+    return { ok: r.ok, text: r.ok ? 'Health summary sent to ' + p.email + '.' : r.message };
+  };
+
   // ---------------------------------------------------------------- view model shared by Home and Advice
   const vm = mode === 'replay' ? (st ? fromReplay(st) : null) : live ? fromLive(live) : null;
 
@@ -415,7 +450,7 @@ function Main() {
         refreshControl={<RefreshControl refreshing={false} tintColor={C.accent} onRefresh={() => setReload((x) => x + 1)} />}
       >
         {welcome ? (
-          <ProfileScreen initial={welcome} welcome onSave={saveProfile} onTestServer={testServer} onTestNotification={testNotification} />
+          <ProfileScreen initial={welcome} welcome onSave={saveProfile} onTestServer={testServer} onTestNotification={testNotification} onTestMail={testMail} />
         ) : (
           <View>
             {recent && tab === 'home' ? (
@@ -447,6 +482,8 @@ function Main() {
                 onSave={saveProfile}
                 onTestServer={testServer}
                 onTestNotification={testNotification}
+                onTestMail={testMail}
+                onSummaryMail={summaryMail}
               />
             ) : null}
           </View>

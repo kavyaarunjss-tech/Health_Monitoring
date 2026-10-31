@@ -87,6 +87,31 @@
     if ('Notification' in window && Notification.permission === 'granted') { new Notification(title, { body }); return true; }
     return false;
   };
+  // e-mail alerts: sent by the phone through Gmail (MailSender.java); the App password stays in Android storage
+  if (A && A.sendMail) {
+    const mailPending = {};
+    let mailSeq = 0;
+    window.__aqMailDone = function (id, ok, message) {
+      const f = mailPending[id];
+      delete mailPending[id];
+      if (f) f({ ok: !!ok, message: String(message || '') });
+    };
+    window.__aqMail = {
+      status() {
+        try { return JSON.parse(A.mailStatus()); } catch (e) { return { configured: false, sender: '' }; }
+      },
+      save(user, pass) { return String(A.saveMailSender(user || '', pass || '') || ''); },
+      clear() { A.clearMailSender(); },
+      send(to, subject, text, html) {
+        return new Promise((resolve) => {
+          const id = ++mailSeq;
+          mailPending[id] = resolve;
+          A.sendMail(id, to || '', subject || '', text || '', html || '');
+          setTimeout(() => window.__aqMailDone(id, false, 'No answer from the mail server after 60 s. Check the internet connection.'), 60000);
+        });
+      },
+    };
+  }
   window.__aqOpen = function (url) {
     if (A && A.openUrl) A.openUrl(url); else window.open(url, '_blank');
   };

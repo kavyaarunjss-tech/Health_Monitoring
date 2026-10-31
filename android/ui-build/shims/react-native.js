@@ -71,8 +71,9 @@ export const ScrollView = forwardRef(function ScrollView({ style, contentContain
   );
 });
 
-export function TextInput({ value, onChangeText, placeholder, style }) {
-  return <input value={value || ''} placeholder={placeholder} onChange={(e) => onChangeText && onChangeText(e.target.value)} style={css(style, { boxSizing: 'border-box', width: '100%' })} />;
+export function TextInput({ value, onChangeText, placeholder, style, secureTextEntry, keyboardType, autoCapitalize }) {
+  const type = secureTextEntry ? 'password' : keyboardType === 'email-address' ? 'email' : keyboardType === 'url' ? 'url' : 'text';
+  return <input type={type} autoCapitalize={autoCapitalize === 'none' ? 'off' : undefined} spellCheck={false} value={value || ''} placeholder={placeholder} onChange={(e) => onChangeText && onChangeText(e.target.value)} style={css(style, { boxSizing: 'border-box', width: '100%' })} />;
 }
 export function Switch({ value, onValueChange }) {
   return <input type="checkbox" checked={!!value} onChange={(e) => onValueChange && onValueChange(e.target.checked)} style={{ width: 40, height: 22 }} />;

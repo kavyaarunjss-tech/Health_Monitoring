@@ -4,7 +4,7 @@
 cd "$(dirname "$0")"
 OUT=../app/src/main/assets/www
 cp shell.js $OUT/shell.js
-npx esbuild entry.js --bundle --minify --target=chrome80 --outfile=$OUT/app.js --loader:.js=jsx --jsx=transform \
+${ESBUILD:-npx esbuild} entry.js --bundle --minify --target=chrome80 --outfile=$OUT/app.js --loader:.js=jsx --jsx=transform \
   --alias:react-native=./shims/react-native.js --alias:expo-constants=./shims/expo-constants.js \
   --alias:expo-notifications=./shims/expo-notifications.js --alias:@react-native-async-storage/async-storage=./shims/async-storage.js \
   --alias:react-native-safe-area-context=./shims/safe-area.js --alias:expo-status-bar=./shims/expo-status-bar.js \

@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
@@ -41,11 +42,15 @@ import java.nio.charset.StandardCharsets;
  *  - http:      requests to the laptop backend (when "built-in demo data" is switched off)
  *  - showAlert: phone notifications for air quality alerts
  *  - openUrl:   source links open in the phone's browser
+ *  - mail*:     e-mail alerts sent from the phone through Gmail (MailSender). The sending Gmail address and its App
+ *               password are kept in this app's private storage on the phone; the JavaScript side can save or remove
+ *               them but never reads the password back.
  */
 public class MainActivity extends Activity {
 
     private static final String CHANNEL_ID = "aq_alerts";
     private static final String START_PAGE = "file:///android_asset/www/index.html";
+    private static final String MAIL_PREFS = "mail_sender";
 
     private WebView web;
     private final Handler mainThread = new Handler(Looper.getMainLooper());
@@ -188,6 +193,71 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void openUrl(final String url) {
             mainThread.post(() -> openExternal(url));
+        }
+
+        // ---------------------------------------------------------- e-mail
+        private SharedPreferences mailPrefs() {
+            return getSharedPreferences(MAIL_PREFS, Context.MODE_PRIVATE);
+        }
+
+        /** {"configured": true/false, "sender": "x@gmail.com"}; the password is never returned. */
+        @JavascriptInterface
+        public String mailStatus() {
+            SharedPreferences p = mailPrefs();
+            String user = p.getString("user", "");
+            boolean ok = !user.isEmpty() && !p.getString("pass", "").isEmpty();
+            try {
+                return new JSONObject().put("configured", ok).put("sender", user).toString();
+            } catch (Exception e) {
+                return "{\"configured\":false,\"sender\":\"\"}";
+            }
+        }
+
+        /** Saves the sending Gmail address and its App password; returns "" or an error message. */
+        @JavascriptInterface
+        public String saveMailSender(String user, String appPassword) {
+            String u = MailSender.clean(user).toLowerCase(java.util.Locale.ROOT);
+            String pw = appPassword == null ? "" : appPassword.replace(" ", "").trim();
+            if (!MailSender.looksLikeEmail(u)) {
+                return "Enter the Gmail address that will send the alerts.";
+            }
+            if (pw.length() != 16) {
+                return "A Gmail App password has 16 letters (spaces do not matter). Your normal Gmail password will not work.";
+            }
+            mailPrefs().edit().putString("user", u).putString("pass", pw).apply();
+            return "";
+        }
+
+        @JavascriptInterface
+        public void clearMailSender() {
+            mailPrefs().edit().clear().apply();
+        }
+
+        /** Sends in the background; the result arrives as window.__aqMailDone(id, ok, message). */
+        @JavascriptInterface
+        public void sendMail(final int id, final String to, final String subject, final String text, final String html) {
+            final SharedPreferences p = mailPrefs();
+            new Thread(() -> {
+                boolean ok;
+                String message;
+                try {
+                    MailSender.sendGmail(p.getString("user", ""), p.getString("pass", ""), to, subject, text, html);
+                    ok = true;
+                    message = "E-mail sent to " + MailSender.clean(to);
+                } catch (MailSender.MailException e) {
+                    ok = false;
+                    message = e.getMessage();
+                } catch (Exception e) {
+                    ok = false;
+                    message = "Could not send the e-mail (" + e.getClass().getSimpleName() + ").";
+                }
+                final String js = "window.__aqMailDone && window.__aqMailDone(" + id + "," + ok + "," + JSONObject.quote(message) + ")";
+                mainThread.post(() -> {
+                    if (web != null) {
+                        web.evaluateJavascript(js, null);
+                    }
+                });
+            }).start();
         }
 
         @JavascriptInterface

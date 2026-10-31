@@ -18,6 +18,24 @@ Profile (gear icon) to read from the laptop backend instead.
    Or run on an emulator: **Device Manager → Create device → Pixel → Next → Finish**, then **Run ▶**.
 4. Allow notifications when the app asks.
 
+## E-mail alerts (sent by the phone through Gmail)
+The phone itself sends the e-mails, so the laptop server is **not** needed, but the phone needs internet.
+1. Make a Gmail **App password** for the account that will send the alerts (your own Gmail is fine):
+   turn on **2-Step Verification** in your Google account, open https://myaccount.google.com/apppasswords,
+   create one named "AQ Health" and copy the 16 letters. (Your normal Gmail password does not work.)
+2. In the app open **Profile (gear icon) → E-mail alerts**:
+   - **Your e-mail**: where alerts and summaries arrive.
+   - **Sending Gmail account**: the Gmail address and its App password → **Save sending account**.
+   - Tap **Send test e-mail** and check the inbox (look in Spam the first time).
+   - Switch on **E-mail me air quality alerts**, then press **Save** at the bottom.
+3. Press **Play** on Home: every alert now also arrives as an e-mail (forecast, your personal advice with sources,
+   disclaimer). Replay alerts are marked **[REPLAY DEMO]**. At most one e-mail per minute; the same alert is never
+   sent twice (also after rewinding). **E-mail me a health summary now** sends the current AQI, the next 24 h,
+   your top actions and this week's summary.
+
+The App password is kept only in this app's private storage on the phone (not in the app's web data, not backed up),
+and is never shown again. **Remove sending account** deletes it.
+
 ## Make an APK to install on any phone
 **Build → Build App Bundle(s) / APK(s) → Build APK(s)**, then click **locate** in the popup.
 The file is `app/build/outputs/apk/debug/app-debug.apk`. Send it to the phone (USB, Drive, WhatsApp to yourself)
