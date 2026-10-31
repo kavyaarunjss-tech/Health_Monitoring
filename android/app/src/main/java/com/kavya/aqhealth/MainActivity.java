@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.speech.tts.TextToSpeech;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -33,6 +34,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 /**
  * AQ Health: phone app for the Integrated Air Quality and Health Risk Prediction Framework.
@@ -55,6 +57,8 @@ public class MainActivity extends Activity {
     private WebView web;
     private final Handler mainThread = new Handler(Looper.getMainLooper());
     private int notificationId = 1;
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -62,6 +66,17 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         createNotificationChannel();
         askNotificationPermission();
+
+        tts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS && tts != null) {
+                int r = tts.setLanguage(new Locale("en", "IN"));          // Indian English voice if installed
+                if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    tts.setLanguage(Locale.ENGLISH);
+                }
+                tts.setSpeechRate(0.95f);
+                ttsReady = true;
+            }
+        });
 
         web = new WebView(this);
         web.setBackgroundColor(Color.parseColor("#0B1320"));
@@ -102,6 +117,11 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+            tts = null;
+        }
         if (web != null) {
             web.destroy();
         }
@@ -193,6 +213,51 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void openUrl(final String url) {
             mainThread.post(() -> openExternal(url));
+        }
+
+        // ---------------------------------------------------------- share and read aloud
+        /** Opens the phone's share sheet (WhatsApp, Gmail, SMS, ...) with plain text. */
+        @JavascriptInterface
+        public void share(final String subject, final String text) {
+            mainThread.post(() -> {
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("text/plain");
+                send.putExtra(Intent.EXTRA_SUBJECT, subject == null ? "" : subject);
+                send.putExtra(Intent.EXTRA_TEXT, text == null ? "" : text);
+                try {
+                    startActivity(Intent.createChooser(send, "Share air quality"));
+                } catch (ActivityNotFoundException ignored) {
+                    // no app can share text
+                }
+            });
+        }
+
+        /** Reads text aloud with the phone's text-to-speech voice; returns false if no voice is available. */
+        @JavascriptInterface
+        public boolean speak(final String text) {
+            if (!ttsReady || tts == null) {
+                return false;
+            }
+            mainThread.post(() -> {
+                if (tts != null) {
+                    tts.speak(text == null ? "" : text, TextToSpeech.QUEUE_FLUSH, null, "aq");
+                }
+            });
+            return true;
+        }
+
+        @JavascriptInterface
+        public void stopSpeaking() {
+            mainThread.post(() -> {
+                if (tts != null) {
+                    tts.stop();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public boolean isSpeaking() {
+            return tts != null && tts.isSpeaking();
         }
 
         // ---------------------------------------------------------- e-mail

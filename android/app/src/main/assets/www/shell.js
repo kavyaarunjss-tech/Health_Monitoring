@@ -112,6 +112,12 @@
       },
     };
   }
+  // share sheet and read-aloud (MainActivity: Intent.ACTION_SEND and TextToSpeech)
+  if (A && A.share) window.__aqShare = function (subject, text) { A.share(subject || '', text || ''); };
+  if (A && A.speak) {
+    window.__aqSpeak = function (text) { return !!A.speak(text || ''); };
+    window.__aqStopSpeak = function () { A.stopSpeaking(); };
+  }
   window.__aqOpen = function (url) {
     if (A && A.openUrl) A.openUrl(url); else window.open(url, '_blank');
   };

@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { C, catStyle, catText, pname, fmtClock, scalePos, CAT_ORDER } from './theme';
 import { Card, Muted, Btn, Banner, Loading, Icon, Rich, s as ui } from './ui';
 
-export default function HomeScreen({ vm, loading, error, alertFrom, onOpenAdvice, onRetry }) {
+export default function HomeScreen({ vm, loading, error, alertFrom, onOpenAdvice, onRetry, onShare, onListen }) {
   if (!vm) {
     return (
       <View>
@@ -25,6 +25,12 @@ export default function HomeScreen({ vm, loading, error, alertFrom, onOpenAdvice
       <AlertStrip vm={vm} alertFrom={alertFrom} onPress={onOpenAdvice} />
       <Next24 vm={vm} alertFrom={alertFrom} />
       <ForYou personal={vm.personal} onPress={onOpenAdvice} />
+      {onShare || onListen ? (
+        <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+          {onListen ? <Btn testID="listenBtn" title="Listen" icon="speaker" kind="secondary" small onPress={onListen} style={{ flex: 1, marginRight: onShare ? 6 : 0 }} /> : null}
+          {onShare ? <Btn testID="shareBtn" title="Share" icon="share" kind="secondary" small onPress={onShare} style={{ flex: 1, marginLeft: onListen ? 6 : 0 }} /> : null}
+        </View>
+      ) : null}
       <Pollutants list={vm.pollutants} />
     </View>
   );

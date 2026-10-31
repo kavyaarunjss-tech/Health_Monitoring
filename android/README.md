@@ -36,6 +36,13 @@ The phone itself sends the e-mails, so the laptop server is **not** needed, but 
 The App password is kept only in this app's private storage on the phone (not in the app's web data, not backed up),
 and is never shown again. **Remove sending account** deletes it.
 
+## Other features
+- **Dark / light mode:** moon / sun button in the top bar (also Profile → Appearance). Switching restarts the replay.
+- **Listen:** the phone reads the current air, forecast and your top actions aloud (Home), or the alert (alert screen).
+  Uses the phone's text-to-speech voice (Indian English if installed). If nothing is heard, check the media volume
+  and that "Speech Services by Google" is installed.
+- **Share:** sends today's AQI, the 24 h forecast and one tip to WhatsApp, Gmail, SMS etc.
+
 ## Make an APK to install on any phone
 **Build → Build App Bundle(s) / APK(s) → Build APK(s)**, then click **locate** in the popup.
 The file is `app/build/outputs/apk/debug/app-debug.apk`. Send it to the phone (USB, Drive, WhatsApp to yourself)

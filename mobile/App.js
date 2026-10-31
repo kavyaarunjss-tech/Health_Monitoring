@@ -10,6 +10,7 @@ import { C, THEME, setTheme, themeSwitchAvailable, HOUR, toMs, labelFromMs, fmtT
 import { api, setServer, getServer, guessServer } from './src/api';
 import { loadAll, saveAll } from './src/store';
 import { initNotifications, notify, askPermission } from './src/notify';
+import { shareAvailable, speakAvailable, share, speakSummary, speakAlert, stopSpeaking } from './src/share';
 import { mailAvailable, mailStatus, validEmail, sendMail, queueAlertMail, composeAlert, composeSummary, composeTest } from './src/mail';
 import HomeScreen, { ReplayBar } from './src/HomeScreen';
 import AdviceScreen from './src/AdviceScreen';
@@ -477,6 +478,8 @@ function Main() {
                 alertFrom={alertFrom}
                 onRetry={() => setReload((x) => x + 1)}
                 onOpenAdvice={() => goTab('advice')}
+                onShare={shareAvailable() && vm ? () => share(vm, stationShort(profile.station)) : null}
+                onListen={speakAvailable() && vm ? () => { if (!speakSummary(vm)) showToast('No voice available: install "Speech Services by Google" from the Play Store.'); } : null}
               />
             ) : null}
             {tab === 'advice' ? (
@@ -547,8 +550,13 @@ function Main() {
         alert={alert}
         insets={insets}
         replay={mode === 'replay'}
-        onDismiss={() => setAlert(null)}
+        onListen={speakAvailable() ? (a) => { if (!speakAlert(a)) showToast('No voice available on this phone.'); } : null}
+        onDismiss={() => {
+          stopSpeaking();
+          setAlert(null);
+        }}
         onContinue={() => {
+          stopSpeaking();
           setAlert(null);
           setPlaying(true);
         }}

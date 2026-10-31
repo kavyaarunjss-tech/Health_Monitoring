@@ -4,7 +4,7 @@ import { Modal, View, Text, ScrollView, StyleSheet } from 'react-native';
 import { C, catStyle, fmtClock, pname } from './theme';
 import { Btn, Icon, titleFor } from './ui';
 
-export default function AlertModal({ alert, onContinue, onDismiss, replay, insets }) {
+export default function AlertModal({ alert, onContinue, onDismiss, onListen, replay, insets }) {
   if (!alert) return null;
   const f = alert.f;
   const likely = alert.level === 'likely';
@@ -42,6 +42,7 @@ export default function AlertModal({ alert, onContinue, onDismiss, replay, inset
             </View>
           ))}
         </ScrollView>
+        {onListen ? <Btn testID="alertListen" title="Listen to this alert" icon="speaker" kind="secondary" small onPress={() => onListen(alert)} style={{ marginBottom: 10 }} /> : null}
         <Text style={st.note}>Not medical advice · Emergency: 112</Text>
         <Btn testID="continueBtn" title={replay ? 'Continue replay' : 'Got it'} onPress={onContinue} />
         <Btn title="Dismiss" kind="ghost" small onPress={onDismiss} style={{ marginTop: 6 }} />
