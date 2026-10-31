@@ -1,7 +1,7 @@
 // Profile and settings: name, station, health groups, alert level, notifications, server address, replay period.
 import React, { useState } from 'react';
 import { View, Text, TextInput, Switch, StyleSheet } from 'react-native';
-import { C, STATIONS, GROUPS, ALERT_CHOICES, defaultAlert, alertLevel } from './theme';
+import { C, THEME, setTheme, themeSwitchAvailable, STATIONS, GROUPS, ALERT_CHOICES, defaultAlert, alertLevel } from './theme';
 import { Card, H2, Muted, Chip, Btn, Banner } from './ui';
 import { offlineAvailable, isOffline, OFFLINE_SERVER } from './api';
 import { mailAvailable, mailStatus, saveSender, clearSender, validEmail } from './mail';
@@ -72,6 +72,17 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
             stays on this phone.
           </Muted>
         </View>
+      ) : null}
+
+      {themeSwitchAvailable() ? (
+        <Card>
+          <H2>Appearance</H2>
+          <View style={st.wrap}>
+            <Chip label="Dark" active={THEME !== 'light'} onPress={() => THEME === 'light' && setTheme('dark')} />
+            <Chip label="Light" active={THEME === 'light'} onPress={() => THEME !== 'light' && setTheme('light')} />
+          </View>
+          <Muted>Changes at once (the replay starts again from its first event). Save other changes first.</Muted>
+        </Card>
       ) : null}
 
       <Card>

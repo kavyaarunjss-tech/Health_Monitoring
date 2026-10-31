@@ -1,7 +1,7 @@
 // Home: the AQI now (big), where it sits on the CPCB scale, an alert strip, the next 24 hours and one line "for you".
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { C, catStyle, pname, fmtClock, scalePos, CAT_ORDER } from './theme';
+import { C, catStyle, catText, pname, fmtClock, scalePos, CAT_ORDER } from './theme';
 import { Card, Muted, Btn, Banner, Loading, Icon, Rich, s as ui } from './ui';
 
 export default function HomeScreen({ vm, loading, error, alertFrom, onOpenAdvice, onRetry }) {
@@ -33,8 +33,8 @@ export default function HomeScreen({ vm, loading, error, alertFrom, onOpenAdvice
 function ErrorCard({ error, onRetry }) {
   return (
     <Card style={{ backgroundColor: C.dangerBg }}>
-      <Text style={{ color: '#ffd0d2', fontWeight: '700', fontSize: 16, marginBottom: 4 }}>Could not load data</Text>
-      <Text style={{ color: '#ffd0d2', fontSize: 14, lineHeight: 20 }}>{error}</Text>
+      <Text style={{ color: C.dangerText, fontWeight: '700', fontSize: 16, marginBottom: 4 }}>Could not load data</Text>
+      <Text style={{ color: C.dangerText, fontSize: 14, lineHeight: 20 }}>{error}</Text>
       {onRetry ? <Btn title="Try again" small kind="secondary" onPress={onRetry} style={{ marginTop: 12, alignSelf: 'flex-start' }} /> : null}
     </Card>
   );
@@ -57,7 +57,7 @@ function BigNumber({ vm }) {
       <View style={{ marginLeft: 14, paddingBottom: 10, flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: c.bg, marginRight: 8 }} />
-          <Text style={[st.cat, { color: c.bg }]}>{n.category}</Text>
+          <Text style={[st.cat, { color: catText(n.category) }]}>{n.category}</Text>
         </View>
         <Text style={st.sub}>{'CPCB AQI' + (n.dominant ? ' · mainly ' + pname(n.dominant) : '')}</Text>
       </View>
@@ -109,7 +109,7 @@ function AlertStrip({ vm, alertFrom, onPress }) {
       <Icon name="alert" size={20} color={C.warnIcon} />
       <Text style={st.alertText}>
         {text + ' '}
-        <Text style={{ color: '#ffffff', fontWeight: '700' }}>See what to do</Text>
+        <Text style={{ color: C.strong, fontWeight: '700' }}>See what to do</Text>
       </Text>
       <Icon name="chevronRight" size={18} color={C.warnText} />
     </TouchableOpacity>

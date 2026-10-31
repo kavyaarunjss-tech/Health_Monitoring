@@ -6,7 +6,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, LogBox, RefreshCo
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { C, HOUR, toMs, labelFromMs, fmtTime, fmtDay, fmtClock, catOf, catRank, alertLevel, stationShort, pname, GROUPS } from './src/theme';
+import { C, THEME, setTheme, themeSwitchAvailable, HOUR, toMs, labelFromMs, fmtTime, fmtDay, fmtClock, catOf, catRank, alertLevel, stationShort, pname, GROUPS } from './src/theme';
 import { api, setServer, getServer, guessServer } from './src/api';
 import { loadAll, saveAll } from './src/store';
 import { initNotifications, notify, askPermission } from './src/notify';
@@ -419,7 +419,7 @@ function Main() {
 
   return (
     <View style={styles.root}>
-      <StatusBar style="light" />
+      <StatusBar style={THEME === 'light' ? 'dark' : 'light'} />
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {welcome ? (
           <Text style={styles.appName}>AQ Health</Text>
@@ -435,6 +435,17 @@ function Main() {
           <View style={styles.modeChip}>
             <Text style={styles.modeChipText}>{mode === 'replay' ? 'REPLAY' : 'LIVE'}</Text>
           </View>
+        ) : null}
+        {!welcome && themeSwitchAvailable() ? (
+          <TouchableOpacity
+            testID="themeBtn"
+            accessibilityRole="button"
+            accessibilityLabel={THEME === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            onPress={() => setTheme(THEME === 'light' ? 'dark' : 'light')}
+            style={styles.gear}
+          >
+            <Icon name={THEME === 'light' ? 'moon' : 'sun'} size={20} color={C.muted} />
+          </TouchableOpacity>
         ) : null}
         {!welcome ? (
           <TouchableOpacity testID="tab_profile" accessibilityRole="button" accessibilityLabel="Profile and settings" onPress={() => goTab('profile')} style={[styles.gear, tab === 'profile' ? { backgroundColor: C.selBg } : null]}>
@@ -492,7 +503,7 @@ function Main() {
 
       {toast ? (
         <View style={[styles.toast, { bottom: 80 + insets.bottom }]}>
-          <Text style={{ color: '#fff', fontSize: 14 }}>{toast}</Text>
+          <Text style={{ color: C.text, fontSize: 14 }}>{toast}</Text>
         </View>
       ) : null}
 

@@ -1,7 +1,9 @@
 // Colours, names and small helpers shared by every screen.
 // CPCB category colours and text colours are the same as the website (frontend/style.css), chosen for WCAG AA contrast.
 
-export const C = {
+// Dark (default) and light colour sets. The choice is stored on the phone and applied when the app starts
+// (switching reloads the screens; only available where the app runs in a WebView, i.e. the Android Studio app).
+const DARK = {
   bg: '#0b1320',
   card: '#131c2b',
   card2: '#1c2738',
@@ -19,8 +21,75 @@ export const C = {
   warnIcon: '#ffb27a',
   dangerBg: '#2b1215',
   danger: '#ff8a8f',
+  dangerText: '#ffd0d2',
   infoBg: '#10263a',
+  infoText: '#cfe6ff',
+  strong: '#ffffff',
 };
+const LIGHT = {
+  bg: '#f4f6f9',
+  card: '#ffffff',
+  card2: '#e3e8ef',
+  nav: '#ffffff',
+  text: '#111a26',
+  soft: '#33404f',
+  muted: '#525e6d',
+  faint: '#5f6b79',
+  accent: '#0a58a8',
+  selBg: '#e2eefb',
+  selBorder: '#6f9fd2',
+  good: '#11703a',
+  warnBg: '#fff0e1',
+  warnText: '#6a3300',
+  warnIcon: '#b44c00',
+  dangerBg: '#fde7e8',
+  danger: '#a8211c',
+  dangerText: '#7d1712',
+  infoBg: '#e4f0fb',
+  infoText: '#0b3c66',
+  strong: '#111a26',
+};
+const THEME_KEY = 'aqhealth.theme';
+function storedTheme() {
+  try {
+    return globalThis.localStorage && globalThis.localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark';
+  } catch (e) {
+    return 'dark';
+  }
+}
+export const THEME = storedTheme();
+export const C = THEME === 'light' ? LIGHT : DARK;
+export const themeSwitchAvailable = () => {
+  try {
+    return !!(globalThis.localStorage && globalThis.location && globalThis.location.reload);
+  } catch (e) {
+    return false;
+  }
+};
+export function setTheme(mode) {
+  try {
+    globalThis.localStorage.setItem(THEME_KEY, mode === 'light' ? 'light' : 'dark');
+    globalThis.location.reload();
+  } catch (e) {
+    // not available (Expo Go): stays dark
+  }
+}
+// page background behind the app (Android WebView) follows the theme
+try {
+  if (globalThis.document && globalThis.document.documentElement) {
+    const st = globalThis.document.documentElement.style;
+    st.colorScheme = THEME;
+    globalThis.document.body && (globalThis.document.body.style.background = C.bg);
+    st.background = C.bg;
+    const r = globalThis.document.getElementById && globalThis.document.getElementById('root');
+    if (r) {
+      r.style.background = C.bg;
+      r.style.color = C.text;
+    }
+  }
+} catch (e) {
+  // not a web page
+}
 
 // CPCB category colours, brightened slightly so they stay clear on the dark background
 export const CAT = {
@@ -33,6 +102,9 @@ export const CAT = {
 };
 export const CAT_ORDER = ['Good', 'Satisfactory', 'Moderate', 'Poor', 'Very Poor', 'Severe'];
 export const catStyle = (c) => CAT[c] || { bg: '#4a5668', fg: '#f2f5f9' };
+// category name written as coloured text on the page background: darker shades in light mode for readability
+const CAT_TEXT_LIGHT = { Good: '#17773a', Satisfactory: '#4f6b10', Moderate: '#7a5c00', Poor: '#a34700', 'Very Poor': '#b3262b', Severe: '#8a1c20' };
+export const catText = (c) => (THEME === 'light' ? CAT_TEXT_LIGHT[c] || C.text : catStyle(c).bg);
 export const catRank = (c) => CAT_ORDER.indexOf(c);
 
 export const PNAME = { pm25: 'PM2.5', pm10: 'PM10', no2: 'NO₂', so2: 'SO₂', o3: 'O₃', co: 'CO' };

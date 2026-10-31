@@ -50,7 +50,7 @@ const st = StyleSheet.create({
   h1: { color: C.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.5, marginTop: 6 },
   sub: { color: C.muted, fontSize: 15, marginTop: 4, marginBottom: 16 },
   row: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 16, paddingHorizontal: 16, height: 64, marginBottom: 8, borderWidth: 1, borderColor: 'transparent' },
-  mine: { backgroundColor: C.selBg, borderColor: '#2d4a6e' },
+  mine: { backgroundColor: C.selBg, borderColor: C.selBorder },
   dot: { width: 12, height: 12, borderRadius: 6, marginRight: 14 },
   name: { color: C.text, fontSize: 16, fontWeight: '600' },
   cat: { color: C.muted, fontSize: 13, marginTop: 2 },
