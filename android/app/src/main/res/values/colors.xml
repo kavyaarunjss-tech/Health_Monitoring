@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg">#0B1320</color>
-    <color name="nav">#0F1826</color>
+    <!-- first frame before the app sets its theme: light ivory; values-night holds the dark charcoal -->
+    <color name="bg">#F6F1E9</color>
+    <color name="nav">#F6F1E9</color>
 </resources>

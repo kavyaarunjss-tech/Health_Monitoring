@@ -1,110 +1,225 @@
-// Colours, names and small helpers shared by every screen.
-// CPCB category colours and text colours are the same as the website (frontend/style.css), chosen for WCAG AA contrast.
+// Design system: colour tokens, type, radii, shadows and the theme engine (Light / Dark / System).
+// Warm editorial look: ivory and cream in light mode, layered charcoal with soft glows in dark mode.
+// CPCB category colours are the only strong colours; every text/background pair here was checked for WCAG AA (4.5:1).
+import { Appearance } from 'react-native';
 
-// Dark (default) and light colour sets. The choice is stored on the phone and applied when the app starts
-// (switching reloads the screens; only available where the app runs in a WebView, i.e. the Android Studio app).
-const DARK = {
-  bg: '#0b1320',
-  card: '#131c2b',
-  card2: '#1c2738',
-  nav: '#0f1826',
-  text: '#f2f5f9',
-  soft: '#b9c4d0',
-  muted: '#9aa8b8',
-  faint: '#8593a3',
-  accent: '#7cc4ff',
-  selBg: '#16233a',
-  selBorder: '#3b6a9a',
-  good: '#5fd08a',
-  warnBg: '#2a1b0e',
-  warnText: '#ffd9bd',
-  warnIcon: '#ffb27a',
-  dangerBg: '#2b1215',
-  danger: '#ff8a8f',
-  dangerText: '#ffd0d2',
-  infoBg: '#10263a',
-  infoText: '#cfe6ff',
-  strong: '#ffffff',
-};
 const LIGHT = {
-  bg: '#f4f6f9',
-  card: '#ffffff',
-  card2: '#e3e8ef',
-  nav: '#ffffff',
-  text: '#111a26',
-  soft: '#33404f',
-  muted: '#525e6d',
-  faint: '#5f6b79',
-  accent: '#0a58a8',
-  selBg: '#e2eefb',
-  selBorder: '#6f9fd2',
-  good: '#11703a',
-  warnBg: '#fff0e1',
-  warnText: '#6a3300',
-  warnIcon: '#b44c00',
-  dangerBg: '#fde7e8',
-  danger: '#a8211c',
-  dangerText: '#7d1712',
-  infoBg: '#e4f0fb',
-  infoText: '#0b3c66',
-  strong: '#111a26',
+  bg: '#f6f1e9', // warm ivory page
+  bg2: '#efe7db', // cream band
+  card: '#fffcf7', // raised surface
+  card2: '#efe7db', // inset surface (chips, tracks)
+  line: '#e7ded0',
+  nav: '#fffcf7',
+  text: '#1e1b18',
+  soft: '#4a433c',
+  muted: '#665e55',
+  faint: '#71685e',
+  accent: '#a2482a', // clay: links and active states
+  accentBg: '#f8dcc9',
+  selBg: '#f8e6d8',
+  selBorder: '#d9a283',
+  good: '#2e6a3d',
+  warnBg: '#fbe5d4',
+  warnText: '#7a3410',
+  warnIcon: '#a8501c',
+  dangerBg: '#f8ddda',
+  danger: '#a8282d',
+  dangerText: '#7d1c17',
+  infoBg: '#e3ebf2',
+  infoText: '#22405b',
+  strong: '#1e1b18',
+  onPrimary: '#fffcf7', // text on the ink button
+  primary: '#1e1b18',
+  shadow: '#5b4a36',
+  // pastel accents (backgrounds only; text on them uses tintText)
+  sage: '#dde8d6',
+  lavender: '#e6e0f4',
+  peach: '#f8dcc9',
+  butter: '#f5e8bf',
+  sky: '#e3ebf2',
+  sageText: '#2c4a2f',
+  lavenderText: '#3c3166',
+  peachText: '#6e3416',
+  butterText: '#5a4710',
+  skyText: '#22405b',
+  glowA: 'rgba(242,168,116,0.20)',
+  glowB: 'rgba(186,170,236,0.16)',
 };
-const THEME_KEY = 'aqhealth.theme';
-function storedTheme() {
+const DARK = {
+  bg: '#121110', // near-black charcoal
+  bg2: '#171614',
+  card: '#1c1a18', // layered surfaces
+  card2: '#272421',
+  line: '#2e2a26',
+  nav: '#1c1a18',
+  text: '#f3eee7',
+  soft: '#d2cac0',
+  muted: '#a99f94',
+  faint: '#988e83',
+  accent: '#f2b48f', // the same clay, lifted to peach
+  accentBg: '#2c1f18',
+  selBg: '#2c1f18',
+  selBorder: '#8a5a3e',
+  good: '#9dd3a9',
+  warnBg: '#2f2017',
+  warnText: '#f6cbae',
+  warnIcon: '#f2a874',
+  dangerBg: '#2e1817',
+  danger: '#f08a8c',
+  dangerText: '#f5bdb9',
+  infoBg: '#19222c',
+  infoText: '#c5d7ea',
+  strong: '#ffffff',
+  onPrimary: '#1b1917',
+  primary: '#f3eee7',
+  shadow: '#000000',
+  sage: '#1d2620',
+  lavender: '#221f2e',
+  peach: '#2c1f18',
+  butter: '#29251a',
+  sky: '#19222c',
+  sageText: '#c7dec6',
+  lavenderText: '#d6ccf4',
+  peachText: '#f3c9ae',
+  butterText: '#eedb9f',
+  skyText: '#c5d7ea',
+  glowA: 'rgba(240,170,120,0.16)',
+  glowB: 'rgba(160,140,235,0.12)',
+};
+
+// ---------------------------------------------------------------- theme engine
+// The choice ("light", "dark" or "system") is saved on the phone. "system" follows the phone's dark-mode setting and
+// switches when it changes. The screens are built from these tokens once, so a change reloads the app (under a second,
+// built-in data); the replay starts again from its first event.
+const MODE_KEY = 'aqhealth.theme';
+const G = typeof globalThis !== 'undefined' ? globalThis : {};
+function readMode() {
   try {
-    return globalThis.localStorage && globalThis.localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark';
+    const v = G.localStorage && G.localStorage.getItem(MODE_KEY);
+    return v === 'light' || v === 'dark' || v === 'system' ? v : 'system';
   } catch (e) {
-    return 'dark';
+    return 'system';
   }
 }
-export const THEME = storedTheme();
+export function systemPrefersDark() {
+  try {
+    if (G.AQAndroid && G.AQAndroid.systemDark) return !!G.AQAndroid.systemDark();
+  } catch (e) {
+    // fall through
+  }
+  try {
+    if (G.matchMedia) return G.matchMedia('(prefers-color-scheme: dark)').matches;
+  } catch (e) {
+    // fall through
+  }
+  try {
+    return Appearance && Appearance.getColorScheme && Appearance.getColorScheme() === 'dark';
+  } catch (e) {
+    return false;
+  }
+}
+export const THEME_MODE = readMode();
+export const THEME = THEME_MODE === 'system' ? (systemPrefersDark() ? 'dark' : 'light') : THEME_MODE;
 export const C = THEME === 'light' ? LIGHT : DARK;
 export const themeSwitchAvailable = () => {
   try {
-    return !!(globalThis.localStorage && globalThis.location && globalThis.location.reload);
+    return !!(G.localStorage && G.location && G.location.reload);
   } catch (e) {
     return false;
   }
 };
-export function setTheme(mode) {
+export function setThemeMode(mode) {
+  const m = mode === 'light' || mode === 'dark' ? mode : 'system';
   try {
-    globalThis.localStorage.setItem(THEME_KEY, mode === 'light' ? 'light' : 'dark');
-    globalThis.location.reload();
+    G.localStorage.setItem(MODE_KEY, m);
+    if (G.AQAndroid && G.AQAndroid.saveTheme) G.AQAndroid.saveTheme(m);
+    G.location.reload();
   } catch (e) {
-    // not available (Expo Go): stays dark
+    // not available (Expo Go): the app keeps following the phone's setting
   }
 }
-// page background behind the app (Android WebView) follows the theme
+export const setTheme = setThemeMode; // older name
+// "system": reload when the phone switches between light and dark
+G.__aqSystemThemeChanged = function () {
+  if (THEME_MODE !== 'system') return;
+  const want = systemPrefersDark() ? 'dark' : 'light';
+  if (want !== THEME) {
+    try {
+      G.location.reload();
+    } catch (e) {
+      // ignore
+    }
+  }
+};
 try {
-  if (globalThis.document && globalThis.document.documentElement) {
-    const st = globalThis.document.documentElement.style;
+  if (G.matchMedia && !(G.AQAndroid && G.AQAndroid.systemDark)) {
+    const mq = G.matchMedia('(prefers-color-scheme: dark)');
+    if (mq.addEventListener) mq.addEventListener('change', () => G.__aqSystemThemeChanged());
+  }
+} catch (e) {
+  // ignore
+}
+// page background, scrollbars and Android status/navigation bars follow the theme
+try {
+  if (G.document && G.document.documentElement) {
+    const st = G.document.documentElement.style;
     st.colorScheme = THEME;
-    globalThis.document.body && (globalThis.document.body.style.background = C.bg);
     st.background = C.bg;
-    const r = globalThis.document.getElementById && globalThis.document.getElementById('root');
+    G.document.documentElement.setAttribute('data-theme', THEME);
+    if (G.document.body) G.document.body.style.background = C.bg;
+    const r = G.document.getElementById && G.document.getElementById('root');
     if (r) {
       r.style.background = C.bg;
       r.style.color = C.text;
     }
   }
+  if (G.AQAndroid && G.AQAndroid.setSystemBars) G.AQAndroid.setSystemBars(C.bg, THEME === 'light');
 } catch (e) {
   // not a web page
 }
 
-// CPCB category colours, brightened slightly so they stay clear on the dark background
+// ---------------------------------------------------------------- type, shape, depth
+const WEB = typeof document !== 'undefined';
+export const F = {
+  serif: WEB ? 'Lora, Georgia, serif' : 'serif', // editorial display: headlines and the big AQI
+  sans: WEB ? 'Inter, Roboto, system-ui, sans-serif' : undefined,
+};
+export const R = { xl: 28, lg: 22, md: 16, sm: 12, pill: 999 };
+// soft, warm shadow for floating surfaces (barely visible in dark mode, where layers do the work)
+export const SH = THEME === 'light'
+  ? { shadowColor: C.shadow, shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 8 }, elevation: 3 }
+  : { shadowColor: '#000000', shadowOpacity: 0.35, shadowRadius: 24, shadowOffset: { width: 0, height: 10 }, elevation: 4 };
+export const SH_SM = THEME === 'light'
+  ? { shadowColor: C.shadow, shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 1 }
+  : { shadowColor: '#000000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 };
+// pastel pairs for icon tiles and highlight cards, in a fixed order so screens look calm, not random
+export const PASTELS = [
+  { bg: C.peach, fg: C.peachText },
+  { bg: C.sage, fg: C.sageText },
+  { bg: C.lavender, fg: C.lavenderText },
+  { bg: C.butter, fg: C.butterText },
+  { bg: C.sky, fg: C.skyText },
+];
+export const pastel = (i) => PASTELS[((i % PASTELS.length) + PASTELS.length) % PASTELS.length];
+
+// ---------------------------------------------------------------- CPCB categories
+// standard CPCB hues, softened to sit on ivory and charcoal; fg = readable text on the colour
 export const CAT = {
-  Good: { bg: '#3fbf6f', fg: '#08130c' },
-  Satisfactory: { bg: '#a8d64a', fg: '#11180a' },
-  Moderate: { bg: '#f5c400', fg: '#1a1500' },
-  Poor: { bg: '#ff8a2a', fg: '#1f1000' },
-  'Very Poor': { bg: '#e5484d', fg: '#ffffff' },
-  Severe: { bg: '#a3262a', fg: '#ffffff' },
+  Good: { bg: '#4fb477', fg: '#1b160f' },
+  Satisfactory: { bg: '#a9cc55', fg: '#1b160f' },
+  Moderate: { bg: '#f0c33c', fg: '#1b160f' },
+  Poor: { bg: '#f08b3e', fg: '#1b160f' },
+  'Very Poor': { bg: '#dc4f52', fg: '#1b160f' },
+  Severe: { bg: '#9e2f38', fg: '#ffffff' },
 };
 export const CAT_ORDER = ['Good', 'Satisfactory', 'Moderate', 'Poor', 'Very Poor', 'Severe'];
-export const catStyle = (c) => CAT[c] || { bg: '#4a5668', fg: '#f2f5f9' };
-// category name written as coloured text on the page background: darker shades in light mode for readability
-const CAT_TEXT_LIGHT = { Good: '#17773a', Satisfactory: '#4f6b10', Moderate: '#7a5c00', Poor: '#a34700', 'Very Poor': '#b3262b', Severe: '#8a1c20' };
-export const catText = (c) => (THEME === 'light' ? CAT_TEXT_LIGHT[c] || C.text : catStyle(c).bg);
+export const catStyle = (c) => CAT[c] || { bg: THEME === 'light' ? '#b9b0a4' : '#4a4540', fg: C.text };
+// category name written as coloured text on the page: deeper shades on ivory, lighter on charcoal
+const CAT_TEXT = {
+  light: { Good: '#256b3f', Satisfactory: '#4a6312', Moderate: '#735600', Poor: '#9a4612', 'Very Poor': '#a8282d', Severe: '#86232b' },
+  dark: { Good: '#7ed29c', Satisfactory: '#c2de7a', Moderate: '#f5d46a', Poor: '#f6a86b', 'Very Poor': '#f08a8c', Severe: '#e77c84' },
+};
+export const catText = (c) => CAT_TEXT[THEME][c] || C.text;
 export const catRank = (c) => CAT_ORDER.indexOf(c);
 
 export const PNAME = { pm25: 'PM2.5', pm10: 'PM10', no2: 'NO₂', so2: 'SO₂', o3: 'O₃', co: 'CO' };

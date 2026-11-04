@@ -6,7 +6,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, LogBox, RefreshCo
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { C, THEME, setTheme, themeSwitchAvailable, HOUR, toMs, labelFromMs, fmtTime, fmtDay, fmtClock, catOf, catRank, alertLevel, stationShort, pname, GROUPS } from './src/theme';
+import { C, F, R, SH, THEME, HOUR, toMs, labelFromMs, fmtTime, fmtDay, fmtClock, catOf, catRank, alertLevel, stationShort, pname, GROUPS } from './src/theme';
 import { api, setServer, getServer, guessServer } from './src/api';
 import { loadAll, saveAll } from './src/store';
 import { initNotifications, notify, askPermission } from './src/notify';
@@ -18,7 +18,7 @@ import StationsScreen from './src/StationsScreen';
 import WeekScreen from './src/WeekScreen';
 import ProfileScreen from './src/ProfileScreen';
 import AlertModal from './src/AlertModal';
-import { Loading, Banner, Icon } from './src/ui';
+import { Loading, Banner, Icon, Glow } from './src/ui';
 
 LogBox.ignoreLogs(['expo-notifications', 'Android Push notifications', 'remote notifications']);
 
@@ -421,36 +421,37 @@ function Main() {
   return (
     <View style={styles.root}>
       <StatusBar style={THEME === 'light' ? 'dark' : 'light'} />
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={styles.glow} pointerEvents="none">
+        <Glow width={460} height={460} />
+      </View>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         {welcome ? (
-          <Text style={styles.appName}>AQ Health</Text>
+          <View style={{ paddingVertical: 6, paddingLeft: 4 }}>
+            <Text style={styles.wordmark}>AQ Health</Text>
+          </View>
         ) : (
-          <TouchableOpacity testID="stationBtn" accessibilityRole="button" onPress={() => goTab('stations')} style={styles.stationBtn}>
-            <Icon name="pin" size={18} color={C.muted} />
-            <Text style={styles.stationText} numberOfLines={1}>{stationShort(profile.station)}</Text>
-            <Icon name="chevronDown" size={16} color={C.muted} />
+          <TouchableOpacity testID="stationBtn" accessibilityRole="button" accessibilityLabel={'Station: ' + stationShort(profile.station) + '. Change station'} onPress={() => goTab('stations')} style={styles.stationBtn}>
+            <Text style={styles.stationKicker}>{mode === 'replay' ? 'Replay · station' : 'Live · station'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.stationText} numberOfLines={1}>{stationShort(profile.station)}</Text>
+              <Icon name="chevronDown" size={16} color={C.muted} />
+            </View>
           </TouchableOpacity>
         )}
         <View style={{ flex: 1 }} />
         {profile ? (
-          <View style={styles.modeChip}>
-            <Text style={styles.modeChipText}>{mode === 'replay' ? 'REPLAY' : 'LIVE'}</Text>
+          <View style={[styles.modeChip, mode === 'live' ? { backgroundColor: C.sage } : null]}>
+            <View style={[styles.modeDot, { backgroundColor: mode === 'live' ? C.good : C.accent }]} />
+            <Text style={[styles.modeChipText, mode === 'live' ? { color: C.sageText } : null]}>{mode === 'replay' ? 'Replay' : 'Live'}</Text>
           </View>
         ) : null}
-        {!welcome && themeSwitchAvailable() ? (
-          <TouchableOpacity
-            testID="themeBtn"
-            accessibilityRole="button"
-            accessibilityLabel={THEME === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            onPress={() => setTheme(THEME === 'light' ? 'dark' : 'light')}
-            style={styles.gear}
-          >
-            <Icon name={THEME === 'light' ? 'moon' : 'sun'} size={20} color={C.muted} />
-          </TouchableOpacity>
-        ) : null}
         {!welcome ? (
-          <TouchableOpacity testID="tab_profile" accessibilityRole="button" accessibilityLabel="Profile and settings" onPress={() => goTab('profile')} style={[styles.gear, tab === 'profile' ? { backgroundColor: C.selBg } : null]}>
-            <Icon name="settings" size={20} color={tab === 'profile' ? C.text : C.muted} />
+          <TouchableOpacity testID="tab_profile" accessibilityRole="button" accessibilityLabel="Profile and settings" onPress={() => goTab('profile')} style={[styles.avatar, tab === 'profile' ? { backgroundColor: C.primary } : null]}>
+            {profile && profile.name ? (
+              <Text style={[styles.avatarText, tab === 'profile' ? { color: C.onPrimary } : null]}>{profile.name.trim().slice(0, 1).toUpperCase()}</Text>
+            ) : (
+              <Icon name="user" size={20} color={tab === 'profile' ? C.onPrimary : C.text} />
+            )}
           </TouchableOpacity>
         ) : null}
       </View>
@@ -458,7 +459,7 @@ function Main() {
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 6, paddingBottom: 28 }}
         refreshControl={<RefreshControl refreshing={false} tintColor={C.accent} onRefresh={() => setReload((x) => x + 1)} />}
       >
         {welcome ? (
@@ -505,8 +506,8 @@ function Main() {
       </ScrollView>
 
       {toast ? (
-        <View style={[styles.toast, { bottom: 80 + insets.bottom }]}>
-          <Text style={{ color: C.text, fontSize: 14 }}>{toast}</Text>
+        <View style={[styles.toast, { bottom: 104 + insets.bottom }]}>
+          <Text style={{ color: C.onPrimary, fontSize: 14, fontWeight: '500', textAlign: 'center' }}>{toast}</Text>
         </View>
       ) : null}
 
@@ -526,23 +527,26 @@ function Main() {
       ) : null}
 
       {!welcome ? (
-        <View style={[styles.tabbar, { paddingBottom: Math.max(insets.bottom, 10) + 6 }]}>
-          {TABS.map((t) => {
-            const on = tab === t.id;
-            return (
-              <TouchableOpacity
-                key={t.id}
-                testID={'tab_' + t.id}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: on }}
-                style={styles.tab}
-                onPress={() => goTab(t.id)}
-              >
-                <Icon name={t.icon} size={22} color={on ? C.text : C.faint} width={on ? 2 : 1.8} />
-                <Text style={[styles.tabLabel, on ? styles.tabOn : null]}>{t.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={[styles.tabWrap, { paddingBottom: Math.max(insets.bottom, 8) + 8 }]}>
+          <View style={styles.tabbar}>
+            {TABS.map((t) => {
+              const on = tab === t.id;
+              return (
+                <TouchableOpacity
+                  key={t.id}
+                  testID={'tab_' + t.id}
+                  accessibilityRole="tab"
+                  accessibilityLabel={t.label}
+                  accessibilityState={{ selected: on }}
+                  style={[styles.tab, on ? styles.tabOnBox : null]}
+                  onPress={() => goTab(t.id)}
+                >
+                  <Icon name={t.icon} size={21} color={on ? C.onPrimary : C.muted} width={on ? 2 : 1.75} />
+                  {on ? <Text style={styles.tabLabelOn}>{t.label}</Text> : null}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       ) : null}
 
@@ -640,17 +644,22 @@ function fromLive({ s, personal }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  header: { paddingHorizontal: 16, paddingBottom: 6, flexDirection: 'row', alignItems: 'center', backgroundColor: C.bg },
-  appName: { color: C.text, fontSize: 20, fontWeight: '800', paddingVertical: 10, paddingLeft: 4 },
-  stationBtn: { flexDirection: 'row', alignItems: 'center', minHeight: 44, paddingHorizontal: 4, maxWidth: 230 },
-  stationText: { color: C.text, fontSize: 17, fontWeight: '600', marginHorizontal: 6 },
-  modeChip: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: C.card2, marginRight: 8 },
-  modeChipText: { color: C.soft, fontWeight: '700', fontSize: 11, letterSpacing: 0.8 },
-  gear: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  tabbar: { flexDirection: 'row', backgroundColor: C.nav, borderTopWidth: 1, borderTopColor: C.card2, paddingTop: 10 },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 2 },
-  tabLabel: { fontSize: 11, color: C.faint, marginTop: 4, fontWeight: '500' },
-  tabOn: { color: C.text, fontWeight: '700' },
-  toast: { position: 'absolute', left: 24, right: 24, backgroundColor: C.card2, borderRadius: 12, padding: 12, alignItems: 'center' },
+  root: { flex: 1, backgroundColor: C.bg, overflow: 'hidden' },
+  glow: { position: 'absolute', top: -120, right: -150, opacity: 1 },
+  header: { paddingHorizontal: 18, paddingBottom: 6, flexDirection: 'row', alignItems: 'center' },
+  wordmark: { fontFamily: F.serif, color: C.text, fontSize: 24, fontWeight: '600', letterSpacing: -0.4 },
+  stationBtn: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 2, maxWidth: 220 },
+  stationKicker: { color: C.muted, fontSize: 11, fontWeight: '600', letterSpacing: 1.1, textTransform: 'uppercase' },
+  stationText: { fontFamily: F.serif, color: C.text, fontSize: 22, fontWeight: '600', letterSpacing: -0.3, marginRight: 6 },
+  modeChip: { flexDirection: 'row', alignItems: 'center', borderRadius: R.pill, paddingHorizontal: 12, height: 32, backgroundColor: C.peach, marginRight: 10 },
+  modeDot: { width: 7, height: 7, borderRadius: 4, marginRight: 7 },
+  modeChipText: { color: C.peachText, fontWeight: '600', fontSize: 13 },
+  avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, ...SH },
+  avatarText: { fontFamily: F.serif, color: C.text, fontSize: 18, fontWeight: '600' },
+  tabWrap: { paddingHorizontal: 16, paddingTop: 6 },
+  tabbar: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.nav, borderRadius: R.pill, padding: 6, ...SH },
+  tab: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: R.pill },
+  tabOnBox: { flex: 1.7, backgroundColor: C.primary },
+  tabLabelOn: { color: C.onPrimary, fontWeight: '600', fontSize: 14, marginLeft: 8 },
+  toast: { position: 'absolute', left: 28, right: 28, backgroundColor: C.primary, borderRadius: R.pill, paddingVertical: 12, paddingHorizontal: 18, alignItems: 'center', ...SH },
 });

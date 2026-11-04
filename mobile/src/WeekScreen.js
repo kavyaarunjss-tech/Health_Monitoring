@@ -1,8 +1,8 @@
 // Your week: one headline, 7 coloured days, two numbers, one tip; the full weekly advice behind "Show details".
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { C, catStyle, catRank, pname, stationShort } from './theme';
-import { Card, Muted, Loading, Banner, ActionCard, Rich, Icon, s as ui } from './ui';
+import { C, F, R, SH_SM, catStyle, catRank, pname, stationShort } from './theme';
+import { Card, Muted, Loading, Banner, ActionCard, Rich, Icon, Overline, s as ui } from './ui';
 
 export default function WeekScreen({ data, error, station }) {
   const [open, setOpen] = useState(false);
@@ -23,10 +23,11 @@ export default function WeekScreen({ data, error, station }) {
   const h = data.health || {};
   const top = (data.top3 || []).map((id) => (h.actions || []).find((a) => a.id === id)).filter(Boolean);
   const used = new Set((data.top3 || []).slice(0, 1));
+  const topAqi = Math.max(150, ...days.map((d) => (d.valid ? d.aqi : 0)));
   const rest = (h.actions || []).filter((a) => !used.has(a.id));
   return (
     <View>
-      <Text style={st.kicker}>{(stale ? 'Last available week' : 'Your week') + ' · ' + stationShort(station)}</Text>
+      <Overline style={{ marginTop: 8 }}>{(stale ? 'Last available week' : 'Your week') + ' · ' + stationShort(station)}</Overline>
       <Text style={st.h1}>{data.enough && most ? 'Mostly ' + most + ' air ' + (stale ? 'that week' : 'this week') : 'Not enough data this week'}</Text>
       {stale ? <Banner kind="danger">Data feed stopped: this is the newest week with data, not the current week.</Banner> : null}
 
@@ -36,12 +37,13 @@ export default function WeekScreen({ data, error, station }) {
         </Card>
       ) : (
         <View>
-          <Card style={{ paddingTop: 20 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Card style={{ paddingTop: 20, paddingBottom: 16 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 132 }}>
               {days.map((d, i) => (
                 <View key={d.date} style={{ alignItems: 'center', flex: 1 }}>
-                  <View style={[st.day, { backgroundColor: d.valid ? catStyle(d.category).bg : C.card2 }]} />
-                  <Text style={[st.wd, i === days.length - 1 ? { color: C.text } : null]}>{d.weekday}</Text>
+                  <Text style={st.dayAqi}>{d.valid ? d.aqi : '–'}</Text>
+                  <View style={[st.day, { height: d.valid ? Math.max(18, (d.aqi / topAqi) * 96) : 18, backgroundColor: d.valid ? catStyle(d.category).bg : C.card2 }]} />
+                  <Text style={[st.wd, i === days.length - 1 ? { color: C.text, fontWeight: '700' } : null]}>{d.weekday}</Text>
                 </View>
               ))}
             </View>
@@ -56,15 +58,15 @@ export default function WeekScreen({ data, error, station }) {
           </Card>
 
           <View style={{ flexDirection: 'row' }}>
-            <Card style={{ flex: 1, marginRight: 6 }}>
+            <Card tone={1} style={{ flex: 1, marginRight: 6 }}>
               <Text style={st.stat}>{bad}<Text style={st.statOf}>{' of 7'}</Text></Text>
               <Text style={st.statLbl}>days Moderate or worse</Text>
             </Card>
-            <Card style={{ flex: 1, marginLeft: 6 }}>
+            <Card tone={0} style={{ flex: 1, marginLeft: 6 }}>
               {trend ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-                  <Icon name={trend.icon} size={22} color={trend.color} width={2.4} />
-                  <Text style={[st.trend, { color: trend.color }]}>{trend.t}</Text>
+                  <Icon name={trend.icon} size={22} color={C.peachText} width={2} />
+                  <Text style={st.trend}>{trend.t}</Text>
                 </View>
               ) : (
                 <Text style={st.trend}>–</Text>
@@ -76,7 +78,8 @@ export default function WeekScreen({ data, error, station }) {
           {top[0] ? <ActionCard icon={top[0].icon} marked={top[0].marked} text={top[0].text} source={'[' + top[0].sources.join('][') + ']'} title="This week's tip" /> : null}
 
           <TouchableOpacity onPress={() => setOpen(!open)} accessibilityRole="button" style={st.more}>
-            <Text style={{ color: C.accent, fontWeight: '700', fontSize: 15 }}>{open ? 'Hide details' : 'Show details'}</Text>
+            <Text style={{ color: C.text, fontWeight: '600', fontSize: 15, marginRight: 6 }}>{open ? 'Hide details' : 'Show details'}</Text>
+            <Icon name={open ? 'chevronDown' : 'chevronRight'} size={16} color={C.text} />
           </TouchableOpacity>
 
           {open ? (
@@ -132,16 +135,16 @@ function Section({ title, items }) {
 }
 
 const st = StyleSheet.create({
-  kicker: { color: C.muted, fontSize: 15, marginTop: 6 },
-  h1: { color: C.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.5, lineHeight: 34, marginTop: 4, marginBottom: 16 },
-  day: { width: 34, height: 34, borderRadius: 17 },
-  wd: { color: C.muted, fontSize: 12, fontWeight: '600', marginTop: 8 },
+  h1: { fontFamily: F.serif, color: C.text, fontSize: 34, fontWeight: '600', letterSpacing: -0.6, lineHeight: 41, marginTop: 6, marginBottom: 20 },
+  day: { width: 28, borderRadius: 14 },
+  dayAqi: { color: C.soft, fontSize: 11, fontWeight: '600', marginBottom: 6 },
+  wd: { color: C.muted, fontSize: 12, fontWeight: '500', marginTop: 10 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16 },
-  stat: { color: C.text, fontSize: 30, fontWeight: '800' },
-  statOf: { color: C.muted, fontSize: 16, fontWeight: '600' },
-  statLbl: { color: C.muted, fontSize: 13, marginTop: 4 },
-  trend: { color: C.text, fontSize: 22, fontWeight: '800', marginLeft: 6 },
-  more: { height: 48, alignItems: 'center', justifyContent: 'center' },
-  dayRow: { flexDirection: 'row', paddingVertical: 6, borderTopWidth: 1, borderTopColor: C.card2 },
+  stat: { fontFamily: F.serif, color: C.sageText, fontSize: 40, fontWeight: '600', letterSpacing: -1 },
+  statOf: { fontFamily: F.serif, color: C.sageText, fontSize: 18, fontWeight: '500' },
+  statLbl: { color: C.soft, fontSize: 13, marginTop: 4 },
+  trend: { fontFamily: F.serif, color: C.peachText, fontSize: 28, fontWeight: '600', marginLeft: 6 },
+  more: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: R.pill, backgroundColor: C.card2, marginVertical: 6 },
+  dayRow: { flexDirection: 'row', paddingVertical: 8, borderTopWidth: 1, borderTopColor: C.line },
   foot: { color: C.faint, fontSize: 12, textAlign: 'center', marginVertical: 12 },
 });

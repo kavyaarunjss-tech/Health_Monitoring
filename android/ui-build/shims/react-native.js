@@ -17,6 +17,7 @@ function css(style, base = {}) {
   if (border) { o.borderStyle = 'solid'; o.borderWidth = s.borderWidth || 0; o.borderColor = s.borderColor || 'black'; }
   for (const [k, v] of Object.entries(s)) {
     if (v === undefined || v === null) continue;
+    if (k === 'shadowColor') { o.boxShadow = shadowCss(s); continue; }
     if (k.startsWith('shadow') || k === 'elevation') continue;
     if (k === 'paddingHorizontal') { o.paddingLeft = v; o.paddingRight = v; continue; }
     if (k === 'paddingVertical') { o.paddingTop = v; o.paddingBottom = v; continue; }
@@ -28,10 +29,22 @@ function css(style, base = {}) {
   }
   return o;
 }
+function hexA(hex, a) {
+  const h = String(hex || '#000').replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map((x) => x + x).join('') : h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function shadowCss(s) {
+  const op = s.shadowOpacity == null ? 0 : s.shadowOpacity;
+  if (!op) return 'none';
+  const off = s.shadowOffset || { width: 0, height: 0 };
+  return `${off.width || 0}px ${off.height || 0}px ${s.shadowRadius || 0}px ${hexA(s.shadowColor, op)}`;
+}
 const VIEW = { display: 'flex', flexDirection: 'column', position: 'relative', boxSizing: 'border-box', flexShrink: 0, minWidth: 0 };
 
-export const View = forwardRef(function View({ style, children, testID }, ref) {
-  return <div ref={ref} data-testid={testID} style={css(style, VIEW)}>{children}</div>;
+export const View = forwardRef(function View({ style, children, testID, pointerEvents, accessibilityRole, accessibilityLabel }, ref) {
+  const pe = pointerEvents === 'none' ? { pointerEvents: 'none' } : null;
+  return <div ref={ref} data-testid={testID} role={accessibilityRole} aria-label={accessibilityLabel} aria-hidden={pointerEvents === 'none' ? 'true' : undefined} style={{ ...css(style, VIEW), ...pe }}>{children}</div>;
 });
 
 export function Text({ style, children, numberOfLines, testID }) {
@@ -46,11 +59,19 @@ export function Text({ style, children, numberOfLines, testID }) {
   );
 }
 
-export function TouchableOpacity({ style, children, onPress, disabled, testID, accessibilityRole }) {
+export function TouchableOpacity({ style, children, onPress, disabled, testID, accessibilityRole, accessibilityLabel, accessibilityState }) {
+  const st = accessibilityState || {};
+  const role = accessibilityRole || 'button';
   return (
     <div
-      role={accessibilityRole || 'button'}
+      role={role}
       data-testid={testID}
+      tabIndex={disabled ? -1 : 0}
+      aria-label={accessibilityLabel}
+      aria-selected={role === 'tab' && st.selected != null ? String(!!st.selected) : undefined}
+      aria-checked={role === 'radio' && st.selected != null ? String(!!st.selected) : undefined}
+      aria-pressed={role === 'button' && st.selected != null ? String(!!st.selected) : undefined}
+      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !disabled && onPress) { e.preventDefault(); onPress(); } }}
       aria-disabled={disabled ? 'true' : undefined}
       onClick={() => !disabled && onPress && onPress()}
       style={css(style, { ...VIEW, cursor: 'pointer' })}
@@ -75,20 +96,37 @@ export function TextInput({ value, onChangeText, placeholder, style, secureTextE
   const type = secureTextEntry ? 'password' : keyboardType === 'email-address' ? 'email' : keyboardType === 'url' ? 'url' : 'text';
   return <input type={type} autoCapitalize={autoCapitalize === 'none' ? 'off' : undefined} spellCheck={false} value={value || ''} placeholder={placeholder} onChange={(e) => onChangeText && onChangeText(e.target.value)} style={css(style, { boxSizing: 'border-box', width: '100%' })} />;
 }
-export function Switch({ value, onValueChange }) {
-  return <input type="checkbox" checked={!!value} onChange={(e) => onValueChange && onValueChange(e.target.checked)} style={{ width: 40, height: 22 }} />;
+export function Switch({ value, onValueChange, trackColor, thumbColor, accessibilityLabel }) {
+  const on = !!value;
+  const track = (trackColor && (on ? trackColor.true : trackColor.false)) || (on ? '#333' : '#ccc');
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on ? 'true' : 'false'}
+      aria-label={accessibilityLabel}
+      onClick={() => onValueChange && onValueChange(!on)}
+      style={{ width: 52, height: 32, borderRadius: 16, border: 0, padding: 0, background: track, position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}
+    >
+      <span style={{ position: 'absolute', top: 4, left: on ? 24 : 4, width: 24, height: 24, borderRadius: 12, background: thumbColor || '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.25)', transition: 'left .2s' }} />
+    </button>
+  );
 }
 export function Modal({ visible, children }) {
   if (!visible) return null;
   return <div data-modal="1" style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', flexDirection: 'column' }}>{children}</div>;
 }
-export function ActivityIndicator() {
-  return <div style={{ fontSize: 24 }}>…</div>;
+export function ActivityIndicator({ color }) {
+  return <div role="progressbar" aria-label="Loading" style={{ width: 34, height: 34, borderRadius: 17, border: '3px solid ' + hexA(color || '#888888', 0.22), borderTopColor: color || '#888', animation: 'aqspin .9s linear infinite' }} />;
 }
 export function RefreshControl() {
   return null;
 }
 export const StyleSheet = { create: (x) => x, flatten: flat };
+export const Appearance = {
+  getColorScheme: () => (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+  addChangeListener: () => ({ remove() {} }),
+};
 export const Platform = { OS: 'android', select: (o) => o.android ?? o.default };
 export const LogBox = { ignoreLogs() {} };
 export const Linking = { openURL: (u) => (window.__aqOpen ? window.__aqOpen(u) : console.log('openURL', u)) };

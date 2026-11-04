@@ -1,8 +1,8 @@
 // Full-screen alert: one clear message, two actions, Continue / Dismiss.
 import React from 'react';
-import { Modal, View, Text, ScrollView, StyleSheet } from 'react-native';
-import { C, catStyle, fmtClock, pname } from './theme';
-import { Btn, Icon, titleFor } from './ui';
+import { Modal, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { C, F, R, SH_SM, catStyle, fmtClock, pname, pastel } from './theme';
+import { Btn, Icon, Orb, titleFor } from './ui';
 
 export default function AlertModal({ alert, onContinue, onDismiss, onListen, replay, insets }) {
   if (!alert) return null;
@@ -20,48 +20,68 @@ export default function AlertModal({ alert, onContinue, onDismiss, onListen, rep
   const bottom = (insets && insets.bottom) || 16;
   return (
     <Modal visible animationType="fade" onRequestClose={onDismiss} statusBarTranslucent>
-      <View style={[st.root, { paddingTop: top + 16, paddingBottom: bottom + 16 }]} testID="alertModal">
-        <Text style={st.kicker}>{(alert.escalation ? 'UPDATE · ' : '') + 'AIR QUALITY ALERT' + (replay ? ' · REPLAY' : '')}</Text>
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingVertical: 16 }}>
-          <View style={[st.iconBox, { backgroundColor: C.warnBg }]}>
-            <Icon name="alert" size={42} color={C.warnIcon} />
-          </View>
+      <View style={[st.root, { paddingTop: top + 12, paddingBottom: bottom + 14 }]} testID="alertModal">
+        <View style={st.orb} pointerEvents="none">
+          <Orb color={c.bg} size={340} />
+        </View>
+        <View style={st.kickerRow}>
+          <View style={[st.kickerDot, { backgroundColor: c.bg }]} />
+          <Text style={st.kicker}>{(alert.escalation ? 'Update · ' : '') + 'Air quality alert' + (replay ? ' · replay' : '')}</Text>
+        </View>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 120, paddingBottom: 12 }}>
           <Text style={st.title}>{title}</Text>
           <Text style={st.body}>{body}</Text>
           <View style={st.meta}>
-            <View style={[st.dot, { backgroundColor: c.bg }]} />
-            <Text style={st.metaText}>{'+' + f.horizon + ' h forecast' + (f.dominant ? ' · mainly ' + pname(f.dominant) : '')}</Text>
-          </View>
-          {acts.map((a, i) => (
-            <View key={i} style={st.act}>
-              <Icon name={a.icon || 'info'} size={24} />
-              <View style={{ flex: 1, marginLeft: 14 }}>
-                <Text style={st.actTitle}>{titleFor(a.icon)}</Text>
-                <Text style={st.actText} numberOfLines={3}>{a.text + (a.source ? ' ' + a.source : '')}</Text>
-              </View>
+            <View style={[st.metaPill, { backgroundColor: c.bg }]}>
+              <Text style={{ color: c.fg, fontWeight: '700', fontSize: 13 }}>{cat}</Text>
             </View>
-          ))}
+            <Text style={st.metaText}>{'+' + f.horizon + ' h forecast' + (f.dominant ? '  ·  mainly ' + pname(f.dominant) : '')}</Text>
+          </View>
+          {acts.map((a, i) => {
+            const t = pastel(i);
+            return (
+              <View key={i} style={st.act}>
+                <View style={[st.actIcon, { backgroundColor: t.bg }]}>
+                  <Icon name={a.icon || 'info'} size={20} color={t.fg} />
+                </View>
+                <View style={{ flex: 1, marginLeft: 14 }}>
+                  <Text style={st.actTitle}>{titleFor(a.icon)}</Text>
+                  <Text style={st.actText} numberOfLines={3}>{a.text + (a.source ? ' ' + a.source : '')}</Text>
+                </View>
+              </View>
+            );
+          })}
         </ScrollView>
-        {onListen ? <Btn testID="alertListen" title="Listen to this alert" icon="speaker" kind="secondary" small onPress={() => onListen(alert)} style={{ marginBottom: 10 }} /> : null}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Btn testID="continueBtn" title={replay ? 'Continue replay' : 'Got it'} onPress={onContinue} style={{ flex: 1 }} />
+          {onListen ? (
+            <TouchableOpacity testID="alertListen" accessibilityRole="button" accessibilityLabel="Listen to this alert" onPress={() => onListen(alert)} style={st.listen}>
+              <Icon name="speaker" size={22} color={C.text} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <Btn title="Dismiss" kind="ghost" small onPress={onDismiss} style={{ marginTop: 4 }} />
         <Text style={st.note}>Not medical advice · Emergency: 112</Text>
-        <Btn testID="continueBtn" title={replay ? 'Continue replay' : 'Got it'} onPress={onContinue} />
-        <Btn title="Dismiss" kind="ghost" small onPress={onDismiss} style={{ marginTop: 6 }} />
       </View>
     </Modal>
   );
 }
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 24 },
-  kicker: { color: C.warnIcon, fontSize: 12, fontWeight: '800', letterSpacing: 1.2 },
-  iconBox: { width: 84, height: 84, borderRadius: 26, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-  title: { color: C.text, fontSize: 32, fontWeight: '800', lineHeight: 38, letterSpacing: -0.5 },
-  body: { color: C.soft, fontSize: 17, lineHeight: 25, marginTop: 10 },
-  meta: { flexDirection: 'row', alignItems: 'center', marginTop: 12, marginBottom: 20 },
-  dot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
+  root: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22, overflow: 'hidden' },
+  orb: { position: 'absolute', right: -110, top: -70 },
+  kickerRow: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: C.card, borderRadius: R.pill, paddingHorizontal: 12, height: 32, ...SH_SM },
+  kickerDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
+  kicker: { color: C.text, fontSize: 12, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
+  title: { fontFamily: F.serif, color: C.text, fontSize: 38, fontWeight: '600', lineHeight: 44, letterSpacing: -0.8 },
+  body: { color: C.soft, fontSize: 16, lineHeight: 24, marginTop: 12 },
+  meta: { flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 20, flexWrap: 'wrap' },
+  metaPill: { borderRadius: R.pill, paddingHorizontal: 12, paddingVertical: 5, marginRight: 10 },
   metaText: { color: C.muted, fontSize: 13 },
-  act: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 16, padding: 16, marginBottom: 10 },
-  actTitle: { color: C.text, fontSize: 16, fontWeight: '700' },
-  actText: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 2 },
-  note: { color: C.faint, fontSize: 13, textAlign: 'center', marginBottom: 12 },
+  act: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: R.lg, padding: 14, marginBottom: 10, ...SH_SM },
+  actIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  actTitle: { color: C.text, fontSize: 15, fontWeight: '600' },
+  actText: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 2 },
+  listen: { width: 54, height: 54, borderRadius: 27, marginLeft: 10, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', ...SH_SM },
+  note: { color: C.faint, fontSize: 12, textAlign: 'center', marginTop: 2 },
 });

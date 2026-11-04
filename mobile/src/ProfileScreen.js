@@ -1,8 +1,8 @@
 // Profile and settings: name, station, health groups, alert level, notifications, server address, replay period.
 import React, { useState } from 'react';
-import { View, Text, TextInput, Switch, StyleSheet } from 'react-native';
-import { C, THEME, setTheme, themeSwitchAvailable, STATIONS, GROUPS, ALERT_CHOICES, defaultAlert, alertLevel } from './theme';
-import { Card, H2, Muted, Chip, Btn, Banner } from './ui';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { C, F, R, THEME, THEME_MODE, setThemeMode, themeSwitchAvailable, STATIONS, GROUPS, ALERT_CHOICES, defaultAlert, alertLevel } from './theme';
+import { Card, H2, Muted, Chip, Btn, Banner, Segmented, Toggle, Orb, Overline } from './ui';
 import { offlineAvailable, isOffline, OFFLINE_SERVER } from './api';
 import { mailAvailable, mailStatus, saveSender, clearSender, validEmail } from './mail';
 
@@ -65,24 +65,17 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
   return (
     <View>
       {welcome ? (
-        <View style={{ marginTop: 10, marginBottom: 16 }}>
-          <Text style={st.welcome}>Welcome to AQ Health</Text>
-          <Muted>
+        <View style={st.welcomeBox}>
+          <View style={st.welcomeOrb} pointerEvents="none">
+            <Orb color={C.accent} size={190} />
+          </View>
+          <Overline>Air quality · Karnataka</Overline>
+          <Text style={st.welcome}>Know the air{'\n'}before you{'\n'}step out.</Text>
+          <Muted style={{ maxWidth: 320 }}>
             Air quality forecasts for 8 Karnataka stations with personal health alerts. Tell us a little about you so the advice fits you. Everything
             stays on this phone.
           </Muted>
         </View>
-      ) : null}
-
-      {themeSwitchAvailable() ? (
-        <Card>
-          <H2>Appearance</H2>
-          <View style={st.wrap}>
-            <Chip label="Dark" active={THEME !== 'light'} onPress={() => THEME === 'light' && setTheme('dark')} />
-            <Chip label="Light" active={THEME === 'light'} onPress={() => THEME !== 'light' && setTheme('light')} />
-          </View>
-          <Muted>Changes at once (the replay starts again from its first event). Save other changes first.</Muted>
-        </Card>
       ) : null}
 
       <Card>
@@ -186,6 +179,25 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
         {mailMsg ? <Banner kind={mailMsg.ok ? 'info' : 'danger'}>{mailMsg.text}</Banner> : null}
       </Card>
 
+      {themeSwitchAvailable() ? (
+        <Card>
+          <H2>Appearance</H2>
+          <Segmented
+            testID="themeSeg"
+            value={THEME_MODE}
+            onChange={(m) => m !== THEME_MODE && setThemeMode(m)}
+            options={[
+              { value: 'light', label: 'Light', icon: 'sun', testID: 'theme_light' },
+              { value: 'dark', label: 'Dark', icon: 'moon', testID: 'theme_dark' },
+              { value: 'system', label: 'System', icon: 'phone', testID: 'theme_system' },
+            ]}
+          />
+          <Muted style={{ marginTop: 10 }}>
+            {(THEME_MODE === 'system' ? 'Following your phone: ' + THEME + ' now. ' : '') + 'Saved on this phone. Switching restarts the replay from its first event, so save other changes first.'}
+          </Muted>
+        </Card>
+      ) : null}
+
       <Card>
         <H2>Data mode</H2>
         <View style={st.wrap}>
@@ -246,17 +258,19 @@ function Row({ label, value, onChange }) {
   return (
     <View style={st.row}>
       <Text style={{ flex: 1, color: C.text, fontSize: 15, paddingRight: 10 }}>{label}</Text>
-      <Switch value={!!value} onValueChange={onChange} trackColor={{ true: '#3b82c4', false: C.card2 }} thumbColor={C.text} />
+      <Toggle value={value} onValueChange={onChange} label={label} />
     </View>
   );
 }
 
 const st = StyleSheet.create({
-  welcome: { fontSize: 30, fontWeight: '800', color: C.text, marginBottom: 8, letterSpacing: -0.5 },
+  welcomeBox: { marginTop: 6, marginBottom: 22, marginHorizontal: -20, paddingHorizontal: 20, paddingTop: 24, overflow: 'hidden', position: 'relative' },
+  welcomeOrb: { position: 'absolute', right: -96, top: -46 },
+  welcome: { fontFamily: F.serif, fontSize: 44, lineHeight: 50, fontWeight: '600', color: C.text, marginTop: 96, marginBottom: 14, letterSpacing: -1 },
   label: { fontWeight: '600', color: C.soft, marginBottom: 10, fontSize: 14 },
-  input: { borderWidth: 1, borderColor: C.card2, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: C.text, backgroundColor: C.bg },
+  input: { borderWidth: 1.5, borderColor: C.line, borderRadius: R.md, paddingHorizontal: 16, paddingVertical: 13, fontSize: 16, color: C.text, backgroundColor: C.bg },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
   err: { color: C.danger, fontSize: 13, marginTop: 6 },
   ok: { color: C.good, fontSize: 15, fontWeight: '600' },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: C.card2, marginTop: 10 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.line, marginTop: 10 },
 });

@@ -1,8 +1,8 @@
 // All 8 stations as a simple list, highest AQI first; tap one to follow it.
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { C, catStyle, stationShort, CAT_ORDER } from './theme';
-import { Loading, Banner } from './ui';
+import { C, F, R, SH_SM, catStyle, stationShort, stationName, CAT_ORDER } from './theme';
+import { Loading, Banner, Overline, Icon } from './ui';
 
 export default function StationsScreen({ data, error, current, onPick, mode }) {
   if (error) return <Banner kind="danger">{error}</Banner>;
@@ -10,6 +10,7 @@ export default function StationsScreen({ data, error, current, onPick, mode }) {
   const rows = data.stations.slice().sort((a, b) => (b.aqi == null ? -1 : b.aqi) - (a.aqi == null ? -1 : a.aqi));
   return (
     <View>
+      <Overline style={{ marginTop: 8 }}>Karnataka · 8 KSPCB stations</Overline>
       <Text style={st.h1}>Stations</Text>
       <Text style={st.sub}>{mode === 'live' ? 'Newest data at each station · tap one to follow it' : 'At the replay time · tap one to follow it'}</Text>
       {rows.map((x) => {
@@ -25,12 +26,17 @@ export default function StationsScreen({ data, error, current, onPick, mode }) {
             onPress={() => onPick(x.id)}
             style={[st.row, mine ? st.mine : null]}
           >
-            <View style={[st.dot, { backgroundColor: has && !stale ? catStyle(x.category).bg : '#4a5668' }]} />
-            <View style={{ flex: 1 }}>
-              <Text style={st.name}>{stationShort(x.id) + (mine ? ' · yours' : '')}</Text>
-              <Text style={st.cat}>{!has ? 'No data right now' : stale ? x.category + ' · data ' + Math.round(x.age_hours) + ' h old' : x.category}</Text>
+            <View style={[st.badge, has && !stale ? { backgroundColor: catStyle(x.category).bg } : st.badgeEmpty]}>
+              <Text style={[st.aqi, { color: has && !stale ? catStyle(x.category).fg : C.muted }]}>{has ? x.aqi : '–'}</Text>
             </View>
-            <Text style={[st.aqi, !has || stale ? { color: C.faint } : null]}>{has ? x.aqi : '–'}</Text>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={st.name} numberOfLines={1}>{stationShort(x.id)}</Text>
+                {mine ? <View style={st.yours}><Text style={st.yoursText}>Yours</Text></View> : null}
+              </View>
+              <Text style={st.cat} numberOfLines={1}>{!has ? 'No data right now' : stale ? x.category + ' · data ' + Math.round(x.age_hours) + ' h old' : x.category}</Text>
+            </View>
+            <Icon name="chevronRight" size={18} color={C.faint} />
           </TouchableOpacity>
         );
       })}
@@ -47,13 +53,16 @@ export default function StationsScreen({ data, error, current, onPick, mode }) {
 }
 
 const st = StyleSheet.create({
-  h1: { color: C.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.5, marginTop: 6 },
-  sub: { color: C.muted, fontSize: 15, marginTop: 4, marginBottom: 16 },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 16, paddingHorizontal: 16, height: 64, marginBottom: 8, borderWidth: 1, borderColor: 'transparent' },
-  mine: { backgroundColor: C.selBg, borderColor: C.selBorder },
-  dot: { width: 12, height: 12, borderRadius: 6, marginRight: 14 },
-  name: { color: C.text, fontSize: 16, fontWeight: '600' },
-  cat: { color: C.muted, fontSize: 13, marginTop: 2 },
-  aqi: { color: C.text, fontSize: 22, fontWeight: '800' },
-  legend: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
+  h1: { fontFamily: F.serif, color: C.text, fontSize: 40, fontWeight: '600', letterSpacing: -0.8, lineHeight: 46, marginTop: 6 },
+  sub: { color: C.muted, fontSize: 15, marginTop: 6, marginBottom: 20 },
+  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: R.lg, paddingHorizontal: 12, paddingRight: 14, height: 72, marginBottom: 10, borderWidth: 1.5, borderColor: 'transparent', ...SH_SM },
+  mine: { borderColor: C.selBorder, backgroundColor: C.selBg },
+  badge: { width: 54, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  badgeEmpty: { backgroundColor: C.card2 },
+  name: { color: C.text, fontSize: 16, fontWeight: '600', flexShrink: 1 },
+  cat: { color: C.muted, fontSize: 13, marginTop: 3 },
+  aqi: { fontSize: 18, fontWeight: '700' },
+  yours: { marginLeft: 8, backgroundColor: C.primary, borderRadius: R.pill, paddingHorizontal: 8, paddingVertical: 2 },
+  yoursText: { color: C.onPrimary, fontSize: 11, fontWeight: '600' },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12 },
 });

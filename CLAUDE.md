@@ -927,3 +927,16 @@ Test MAE / R2 / category accuracy / alert F1 (AQI>100):
 - Chart colours (app.js, live.js) and Chart.js gridlines (ui.js) adjusted for the dark background. Asset links `?v=20261031a`, service-worker cache v3.
 - Checked by screenshots only (replay page desktop + 390 px, login). The project's UI test suites were NOT re-run (FastAPI not installable in that session):
   re-run test_readability.py (contrast scan) and the other UI tests before relying on them.
+
+## Phone app redesign v2.0 (4 Nov 2026; presentation only, all features kept)
+- Warm minimalist + editorial design system in `mobile/src/theme.js` (tokens LIGHT ivory #f6f1e9 / DARK charcoal #121110, pastel
+  tints, CPCB colours, Lora serif display + Inter, radii, shadows) and `mobile/src/ui.js` (Card, Btn, Chip, Segmented, Toggle, Orb =
+  SVG lit sphere, Glow, Banner, ActionCard). Every text/background pair checked >= 4.5:1.
+- Theme engine: localStorage `aqhealth.theme` = light | dark | system (default system). System uses `AQAndroid.systemDark()`
+  (Android uiMode) or matchMedia; Android `onConfigurationChanged` calls `window.__aqSystemThemeChanged` so System follows the
+  phone live; `AQAndroid.saveTheme` keeps it in SharedPreferences for start-up colours; `setSystemBars` colours status/nav bars.
+  Switching reloads the WebView (tokens are read once). Header sun/moon button removed; control is Profile -> Appearance.
+- Fonts: unmodified `Lora-Variable.ttf` (OFL with Reserved Font Name, so NOT subset) + Inter, in android assets `www/fonts`.
+- Checked (scratchpad Playwright harness): 16 screens + 44 scroll views in both themes 0 low-contrast texts, 0 page errors; theme
+  tests (default system, dark/light persist across restart, system follows live, Android config change); e-mail, rate limit,
+  summary, share, listen regression all pass. Not built in Android Studio here (no SDK); Java compile-checked against stubs.

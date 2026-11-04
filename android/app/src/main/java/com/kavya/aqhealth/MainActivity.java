@@ -11,12 +11,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
+import android.view.Window;
 import android.speech.tts.TextToSpeech;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -53,6 +56,7 @@ public class MainActivity extends Activity {
     private static final String CHANNEL_ID = "aq_alerts";
     private static final String START_PAGE = "file:///android_asset/www/index.html";
     private static final String MAIL_PREFS = "mail_sender";
+    private static final String UI_PREFS = "ui";
 
     private WebView web;
     private final Handler mainThread = new Handler(Looper.getMainLooper());
@@ -79,7 +83,11 @@ public class MainActivity extends Activity {
         });
 
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#0B1320"));
+        // start in the right colours (no dark flash in light mode): saved choice, or the phone's setting
+        String startBg = startDark() ? "#121110" : "#F6F1E9";
+        getWindow().getDecorView().setBackgroundColor(Color.parseColor(startBg));
+        applySystemBars(startBg, !startDark());
+        web.setBackgroundColor(Color.parseColor(startBg));
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);   // the app saves your profile in local storage
@@ -112,6 +120,54 @@ public class MainActivity extends Activity {
         super.onSaveInstanceState(outState);
         if (web != null) {
             web.saveState(outState);
+        }
+    }
+
+    // ------------------------------------------------------------------ theme (Light / Dark / System)
+    private boolean phoneIsDark() {
+        int mode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        return mode == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    private boolean startDark() {
+        String m = getSharedPreferences(UI_PREFS, Context.MODE_PRIVATE).getString("theme", "system");
+        if ("light".equals(m)) {
+            return false;
+        }
+        if ("dark".equals(m)) {
+            return true;
+        }
+        return phoneIsDark();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void applySystemBars(String hex, boolean lightBars) {
+        try {
+            int color = Color.parseColor(hex);
+            Window w = getWindow();
+            w.setStatusBarColor(color);
+            w.setNavigationBarColor(color);
+            View d = w.getDecorView();
+            int flags = d.getSystemUiVisibility();
+            if (Build.VERSION.SDK_INT >= 23) {
+                flags = lightBars ? (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+            if (Build.VERSION.SDK_INT >= 26) {
+                flags = lightBars ? (flags | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR) : (flags & ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            }
+            d.setSystemUiVisibility(flags);
+            d.setBackgroundColor(color);
+        } catch (IllegalArgumentException ignored) {
+            // not a colour
+        }
+    }
+
+    /** The phone switched between light and dark (the activity is not restarted: configChanges includes uiMode). */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (web != null) {
+            web.evaluateJavascript("window.__aqSystemThemeChanged && window.__aqSystemThemeChanged()", null);
         }
     }
 
@@ -213,6 +269,23 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void openUrl(final String url) {
             mainThread.post(() -> openExternal(url));
+        }
+
+        // ---------------------------------------------------------- theme
+        @JavascriptInterface
+        public boolean systemDark() {
+            return phoneIsDark();
+        }
+
+        @JavascriptInterface
+        public void saveTheme(String mode) {
+            String m = "light".equals(mode) || "dark".equals(mode) ? mode : "system";
+            getSharedPreferences(UI_PREFS, Context.MODE_PRIVATE).edit().putString("theme", m).apply();
+        }
+
+        @JavascriptInterface
+        public void setSystemBars(final String hex, final boolean lightBars) {
+            mainThread.post(() -> applySystemBars(hex, lightBars));
         }
 
         // ---------------------------------------------------------- share and read aloud
