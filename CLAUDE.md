@@ -940,3 +940,12 @@ Test MAE / R2 / category accuracy / alert F1 (AQI>100):
 - Checked (scratchpad Playwright harness): 16 screens + 44 scroll views in both themes 0 low-contrast texts, 0 page errors; theme
   tests (default system, dark/light persist across restart, system follows live, Android config change); e-mail, rate limit,
   summary, share, listen regression all pass. Not built in Android Studio here (no SDK); Java compile-checked against stubs.
+
+## Phone app v2.1 (4 Nov 2026): user disliked v2.0 -> soft wellness style (reference "Janani" app)
+- User feedback on v2.0: colours dull/brown, serif looked old, orb/layout odd, too much per screen. Chosen reference: soft wellness app.
+- Tokens now soft white #f6f7f9 + white cards / near-black #0e0f12 + #17181d layers, indigo accent #5a4bd1 / #a99cff, pastel tints
+  lavender/peach/mint/butter/sky; ONE sans font (Inter; `F.display`, `F.serif` kept as alias); Lora removed from the assets.
+  `Orb` is now a soft blurred radial glow (no 3D sphere). Home = greeting ("Hello, <name> / Today's air, replayed"), white AQI card with
+  category glow, pill + scale, Listen/Share as round IconBtns (testIDs listenBtn/shareBtn kept), compact 24 h bars, one "For you" row.
+  Header = station pill + mode chip + avatar; tab bar = floating pill, icons only, active in a dark circle (accessibility labels kept).
+- Re-checked: 16 screens + 44 scroll views both themes 0 low-contrast, 0 errors; theme tests 12/12; e-mail suite all ok; share/listen ok.

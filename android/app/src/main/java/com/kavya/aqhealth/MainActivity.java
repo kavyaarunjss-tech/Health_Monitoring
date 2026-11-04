@@ -84,7 +84,7 @@ public class MainActivity extends Activity {
 
         web = new WebView(this);
         // start in the right colours (no dark flash in light mode): saved choice, or the phone's setting
-        String startBg = startDark() ? "#121110" : "#F6F1E9";
+        String startBg = startDark() ? "#0E0F12" : "#F6F7F9";
         getWindow().getDecorView().setBackgroundColor(Color.parseColor(startBg));
         applySystemBars(startBg, !startDark());
         web.setBackgroundColor(Color.parseColor(startBg));

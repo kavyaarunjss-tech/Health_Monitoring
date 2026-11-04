@@ -37,8 +37,9 @@ The App password is kept only in this app's private storage on the phone (not in
 and is never shown again. **Remove sending account** deletes it.
 
 ## Other features
-- **Design (v2.0):** warm editorial look. Ivory and cream in light mode, layered charcoal with soft glows in dark mode; Lora
-  serif headlines with Inter text; a lit "orb" in the CPCB category colour; floating tab bar and replay player.
+- **Design (v2.1):** soft wellness look. White cards on a soft white page with blurred colour glows (light), near-black layered
+  surfaces with dimmed glows (dark); one clean sans-serif font (Inter); a soft glow in the CPCB category colour behind the AQI;
+  floating station pill, tab bar and replay player; Listen and Share as round buttons on the AQI card.
 - **Appearance:** Profile (avatar, top right) → Appearance → **Light / Dark / System**. System follows the phone's dark-mode
   setting and switches by itself when the phone changes. The choice is saved on the phone. Switching restarts the replay.
 - **Listen:** the phone reads the current air, forecast and your top actions aloud (Home), or the alert (alert screen).

@@ -431,11 +431,9 @@ function Main() {
           </View>
         ) : (
           <TouchableOpacity testID="stationBtn" accessibilityRole="button" accessibilityLabel={'Station: ' + stationShort(profile.station) + '. Change station'} onPress={() => goTab('stations')} style={styles.stationBtn}>
-            <Text style={styles.stationKicker}>{mode === 'replay' ? 'Replay · station' : 'Live · station'}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.stationText} numberOfLines={1}>{stationShort(profile.station)}</Text>
-              <Icon name="chevronDown" size={16} color={C.muted} />
-            </View>
+            <Icon name="pin" size={17} color={C.text} />
+            <Text style={styles.stationText} numberOfLines={1}>{stationShort(profile.station)}</Text>
+            <Icon name="chevronDown" size={15} color={C.muted} />
           </TouchableOpacity>
         )}
         <View style={{ flex: 1 }} />
@@ -479,6 +477,7 @@ function Main() {
                 alertFrom={alertFrom}
                 onRetry={() => setReload((x) => x + 1)}
                 onOpenAdvice={() => goTab('advice')}
+                name={profile.name}
                 onShare={shareAvailable() && vm ? () => share(vm, stationShort(profile.station)) : null}
                 onListen={speakAvailable() && vm ? () => { if (!speakSummary(vm)) showToast('No voice available: install "Speech Services by Google" from the Play Store.'); } : null}
               />
@@ -541,8 +540,9 @@ function Main() {
                   style={[styles.tab, on ? styles.tabOnBox : null]}
                   onPress={() => goTab(t.id)}
                 >
-                  <Icon name={t.icon} size={21} color={on ? C.onPrimary : C.muted} width={on ? 2 : 1.75} />
-                  {on ? <Text style={styles.tabLabelOn}>{t.label}</Text> : null}
+                  <View style={[styles.tabIcon, on ? styles.tabIconOn : null]}>
+                    <Icon name={t.icon} size={21} color={on ? C.onPrimary : C.muted} width={on ? 2 : 1.75} />
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -647,19 +647,20 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg, overflow: 'hidden' },
   glow: { position: 'absolute', top: -120, right: -150, opacity: 1 },
   header: { paddingHorizontal: 18, paddingBottom: 6, flexDirection: 'row', alignItems: 'center' },
-  wordmark: { fontFamily: F.serif, color: C.text, fontSize: 24, fontWeight: '600', letterSpacing: -0.4 },
-  stationBtn: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 2, maxWidth: 220 },
+  wordmark: { fontFamily: F.display, color: C.text, fontSize: 20, fontWeight: '600', letterSpacing: -0.4 },
+  stationBtn: { flexDirection: 'row', alignItems: 'center', height: 44, paddingHorizontal: 14, borderRadius: R.pill, backgroundColor: C.card, maxWidth: 230, ...SH },
   stationKicker: { color: C.muted, fontSize: 11, fontWeight: '600', letterSpacing: 1.1, textTransform: 'uppercase' },
-  stationText: { fontFamily: F.serif, color: C.text, fontSize: 22, fontWeight: '600', letterSpacing: -0.3, marginRight: 6 },
-  modeChip: { flexDirection: 'row', alignItems: 'center', borderRadius: R.pill, paddingHorizontal: 12, height: 32, backgroundColor: C.peach, marginRight: 10 },
+  stationText: { color: C.text, fontSize: 15, fontWeight: '600', marginHorizontal: 7 },
+  modeChip: { flexDirection: 'row', alignItems: 'center', borderRadius: R.pill, paddingHorizontal: 12, height: 32, backgroundColor: C.lavender, marginRight: 10 },
   modeDot: { width: 7, height: 7, borderRadius: 4, marginRight: 7 },
-  modeChipText: { color: C.peachText, fontWeight: '600', fontSize: 13 },
+  modeChipText: { color: C.lavenderText, fontWeight: '600', fontSize: 13 },
   avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, ...SH },
-  avatarText: { fontFamily: F.serif, color: C.text, fontSize: 18, fontWeight: '600' },
+  avatarText: { color: C.text, fontSize: 17, fontWeight: '600' },
   tabWrap: { paddingHorizontal: 16, paddingTop: 6 },
-  tabbar: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.nav, borderRadius: R.pill, padding: 6, ...SH },
-  tab: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: R.pill },
-  tabOnBox: { flex: 1.7, backgroundColor: C.primary },
-  tabLabelOn: { color: C.onPrimary, fontWeight: '600', fontSize: 14, marginLeft: 8 },
+  tabbar: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.nav, borderRadius: R.pill, padding: 4, marginHorizontal: 18, ...SH },
+  tab: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center' },
+  tabOnBox: {},
+  tabIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  tabIconOn: { backgroundColor: C.primary },
   toast: { position: 'absolute', left: 28, right: 28, backgroundColor: C.primary, borderRadius: R.pill, paddingVertical: 12, paddingHorizontal: 18, alignItems: 'center', ...SH },
 });

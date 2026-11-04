@@ -29,8 +29,8 @@ export default function AdviceScreen({ vm, meta, alertFrom, groupsLabel }) {
   const c = catStyle(p.category);
   return (
     <View>
-      <Overline style={{ marginTop: 8 }}>Advice for you</Overline>
-      <Text style={st.h1}>What to do</Text>
+      <Text style={[st.h1, { marginBottom: 0 }]}>What to do</Text>
+      <Text style={[st.h1, { color: C.muted, marginTop: 0 }]}>for you today</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
         <CatPill category={p.category} label={p.category + ' · AQI ' + p.aqi} small />
         <Text style={st.for}>{groupsLabel + ' · alerts from ' + alertFrom}</Text>
@@ -77,7 +77,7 @@ export default function AdviceScreen({ vm, meta, alertFrom, groupsLabel }) {
 }
 
 const st = StyleSheet.create({
-  h1: { fontFamily: F.serif, color: C.text, fontSize: 40, fontWeight: '600', letterSpacing: -0.8, lineHeight: 46, marginTop: 6, marginBottom: 12 },
+  h1: { fontFamily: F.display, color: C.text, fontSize: 32, fontWeight: '400', letterSpacing: -1, lineHeight: 38, marginTop: 6, marginBottom: 14 },
   for: { color: C.muted, fontSize: 14, marginLeft: 10, marginTop: 2 },
   why: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 6, borderRadius: R.pill, backgroundColor: C.card2 },
   kind: { color: C.accent, fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 4 },

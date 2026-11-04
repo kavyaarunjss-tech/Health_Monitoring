@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { C, F, R, SH, SH_SM, THEME, catStyle, catText, pname, fmtClock, scalePos, CAT_ORDER } from './theme';
-import { Card, Muted, Btn, Banner, Loading, Icon, Rich, Orb, Overline, s as ui } from './ui';
+import { Card, Muted, Btn, Banner, Loading, Icon, Rich, Orb, Overline, IconBtn, CatPill, s as ui } from './ui';
 
-export default function HomeScreen({ vm, loading, error, alertFrom, onOpenAdvice, onRetry, onShare, onListen }) {
+export default function HomeScreen({ vm, loading, error, alertFrom, onOpenAdvice, onRetry, onShare, onListen, name }) {
   if (!vm) {
     return (
       <View>
@@ -20,17 +20,12 @@ export default function HomeScreen({ vm, loading, error, alertFrom, onOpenAdvice
       {(vm.warnings || []).map((w, i) => (
         <Banner key={i} kind={vm.stale ? 'danger' : 'warn'}>{w}</Banner>
       ))}
-      <Hero vm={vm} />
-      {vm.now ? <ScaleBar aqi={vm.now.aqi} /> : null}
+      <Text style={st.hello}>{name && name.trim() ? 'Hello, ' + name.trim().split(' ')[0] : 'Hello'}</Text>
+      <Text style={st.helloSub}>{vm.mode === 'replay' ? "Today's air, replayed" : "Today's air"}</Text>
+      <Hero vm={vm} onShare={onShare} onListen={onListen} />
       <AlertStrip vm={vm} alertFrom={alertFrom} onPress={onOpenAdvice} />
       <Next24 vm={vm} alertFrom={alertFrom} />
       <ForYou personal={vm.personal} onPress={onOpenAdvice} />
-      {onShare || onListen ? (
-        <View style={{ flexDirection: 'row', marginBottom: 14 }}>
-          {onListen ? <Btn testID="listenBtn" title="Listen" icon="speaker" kind="secondary" small onPress={onListen} style={{ flex: 1, marginRight: onShare ? 6 : 0 }} /> : null}
-          {onShare ? <Btn testID="shareBtn" title="Share" icon="share" kind="secondary" small onPress={onShare} style={{ flex: 1, marginLeft: onListen ? 6 : 0 }} /> : null}
-        </View>
-      ) : null}
       <Pollutants list={vm.pollutants} />
     </View>
   );
@@ -46,27 +41,36 @@ function ErrorCard({ error, onRetry }) {
   );
 }
 
-function Hero({ vm }) {
+function Hero({ vm, onShare, onListen }) {
   const n = vm.now;
   const c = n ? catStyle(n.category) : null;
   return (
     <View style={st.hero} testID="nowCard">
-      <View style={st.orb} pointerEvents="none">
-        <Orb color={c ? c.bg : null} size={250} />
+      <View style={st.blob} pointerEvents="none">
+        <Orb color={c ? c.bg : null} size={300} />
       </View>
-      <Text style={st.time} testID="modeBanner">{vm.timeLine}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={[st.time, { flex: 1 }]} testID="modeBanner" numberOfLines={1}>{vm.timeLine}</Text>
+        {onListen ? <IconBtn testID="listenBtn" icon="speaker" label="Listen" onPress={onListen} style={st.heroBtn} /> : null}
+        {onShare ? <IconBtn testID="shareBtn" icon="share" label="Share" onPress={onShare} style={[st.heroBtn, { marginLeft: 8 }]} /> : null}
+      </View>
       {n ? (
         <View>
-          <Text style={st.big} testID="nowAqi">{n.aqi}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: c.bg, marginRight: 8 }} />
-            <Text style={[st.cat, { color: catText(n.category) }]}>{n.category}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginTop: 10 }}>
+            <Text style={st.big} testID="nowAqi">{n.aqi}</Text>
+            <View style={{ marginLeft: 12, paddingBottom: 16 }}>
+              <Text style={st.aqiLbl}>AQI</Text>
+            </View>
           </View>
-          <Text style={st.sub}>{'CPCB Air Quality Index' + (n.dominant ? '  ·  mainly ' + pname(n.dominant) : '')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+            <CatPill category={n.category} />
+            {n.dominant ? <Text style={st.sub}>{'mainly ' + pname(n.dominant)}</Text> : null}
+          </View>
+          <ScaleBar aqi={n.aqi} />
         </View>
       ) : (
-        <View style={{ marginTop: 18, maxWidth: 240 }}>
-          <Text style={[st.cat, { color: C.text, fontFamily: F.serif }]}>No AQI for this hour</Text>
+        <View style={{ marginTop: 14, maxWidth: 260 }}>
+          <Text style={[st.cat, { color: C.text }]}>No AQI for this hour</Text>
           <Muted style={{ marginTop: 6 }}>The station has a data gap. Try the next hour or another station.</Muted>
         </View>
       )}
@@ -78,7 +82,7 @@ const SEG = [1, 1, 2, 2, 2, 2]; // CPCB band widths: 0-50, 50-100, 100-200, 200-
 function ScaleBar({ aqi }) {
   const pos = scalePos(aqi) * 100;
   return (
-    <View style={{ marginTop: 4, marginBottom: 16 }} accessibilityLabel={'AQI ' + aqi + ' on the CPCB scale from 0 to 500'}>
+    <View style={{ marginTop: 18 }} accessibilityLabel={'AQI ' + aqi + ' on the CPCB scale from 0 to 500'}>
       <View style={st.scale}>
         {CAT_ORDER.map((cat, i) => (
           <View
@@ -176,7 +180,7 @@ function Next24({ vm, alertFrom }) {
             <View key={c.key} style={[st.col, c.past ? { opacity: 0.4 } : null]} testID={c.key === 'now' ? 'colNow' : 'fc' + c.key.slice(1)}>
               <Text style={st.colAqi}>{c.aqi == null ? '–' : c.aqi}</Text>
               <View style={[st.colBarWrap, c.now ? st.colNow : null]}>
-                <View style={[st.colBar, { height: c.aqi == null ? 8 : Math.max(12, (c.aqi / top) * 86), backgroundColor: c.aqi == null ? C.line : catStyle(c.cat).bg }]} />
+                <View style={[st.colBar, { height: c.aqi == null ? 8 : Math.max(10, (c.aqi / top) * 60), backgroundColor: c.aqi == null ? C.line : catStyle(c.cat).bg }]} />
               </View>
               <Text style={[st.colLabel, c.now ? { color: C.text } : null]}>{c.label}</Text>
               <Text style={st.colTime} numberOfLines={1}>{c.past ? 'passed' : c.time}</Text>
@@ -194,17 +198,14 @@ function ForYou({ personal, onPress }) {
   if (!a) return null;
   return (
     <TouchableOpacity onPress={onPress} accessibilityRole="button" activeOpacity={0.85} style={st.forYou} testID="forYou">
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-        <View style={st.forYouIcon}>
-          <Icon name={a.icon || 'info'} size={18} color={C.lavenderText} />
-        </View>
+      <View style={st.forYouIcon}>
+        <Icon name={a.icon || 'info'} size={20} color={C.lavenderText} />
+      </View>
+      <View style={{ flex: 1, marginHorizontal: 14 }}>
         <Text style={st.forYouKicker}>For you today</Text>
+        <Text style={st.forYouText} numberOfLines={2}>{a.text}</Text>
       </View>
-      <Text style={st.forYouText} numberOfLines={3}>{a.text}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-        <Text style={st.forYouLink}>Read all advice</Text>
-        <Icon name="arrowRight" size={16} color={C.lavenderText} />
-      </View>
+      <Icon name="chevronRight" size={18} color={C.faint} />
     </TouchableOpacity>
   );
 }
@@ -260,7 +261,7 @@ export function ReplayBar({ playing, onPlay, onStep, onSkip, speed, onSpeed, can
           <Text style={st.playerSub}>{speed + ' h per step · tap to change'}</Text>
         </TouchableOpacity>
         <TouchableOpacity testID="skipBtn" onPress={onSkip} accessibilityRole="button" style={st.next}>
-          <Text style={{ color: C.peachText, fontWeight: '600', fontSize: 13 }}>Next event</Text>
+          <Text style={{ color: C.lavenderText, fontWeight: '600', fontSize: 13 }}>Next event</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -276,49 +277,52 @@ function RoundBtn({ icon, label, onPress, disabled, testID }) {
 }
 
 const st = StyleSheet.create({
-  hero: { minHeight: 250, justifyContent: 'flex-end', paddingTop: 8, marginBottom: 6, position: 'relative', marginHorizontal: -20, paddingHorizontal: 20, overflow: 'hidden' },
-  orb: { position: 'absolute', right: -70, top: -28 },
-  time: { color: C.muted, fontSize: 12, fontWeight: '600', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 6 },
-  big: { fontFamily: F.serif, color: C.text, fontSize: 124, fontWeight: '500', letterSpacing: -5, lineHeight: 128 },
-  cat: { fontFamily: F.serif, fontSize: 28, fontWeight: '600', letterSpacing: -0.4 },
-  sub: { color: C.muted, fontSize: 13, marginTop: 6 },
-  scale: { flexDirection: 'row', height: 6, position: 'relative', marginTop: 18 },
-  marker: { position: 'absolute', top: -7, width: 20, height: 20, marginLeft: -10, borderRadius: 10, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', ...SH_SM },
-  markerDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.text },
-  scaleLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  hello: { fontFamily: F.display, color: C.text, fontSize: 32, fontWeight: '400', letterSpacing: -1, lineHeight: 38, marginTop: 6 },
+  helloSub: { fontFamily: F.display, color: C.muted, fontSize: 32, fontWeight: '400', letterSpacing: -1, lineHeight: 38, marginBottom: 18 },
+  hero: { backgroundColor: C.card, borderRadius: R.xl, padding: 20, marginBottom: 14, overflow: 'hidden', position: 'relative', ...SH },
+  blob: { position: 'absolute', right: -110, top: -120 },
+  heroBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.card2, shadowOpacity: 0, elevation: 0 },
+  time: { color: C.muted, fontSize: 13, fontWeight: '500' },
+  big: { fontFamily: F.display, color: C.text, fontSize: 96, fontWeight: '300', letterSpacing: -5, lineHeight: 100 },
+  aqiLbl: { color: C.muted, fontSize: 15, fontWeight: '600' },
+  cat: { fontFamily: F.display, fontSize: 22, fontWeight: '600', letterSpacing: -0.4 },
+  sub: { color: C.muted, fontSize: 14, marginLeft: 10 },
+  scale: { flexDirection: 'row', height: 6, position: 'relative' },
+  marker: { position: 'absolute', top: -6, width: 18, height: 18, marginLeft: -9, borderRadius: 9, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', ...SH_SM },
+  markerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.text },
+  scaleLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
   scaleText: { color: C.faint, fontSize: 11 },
-  alert: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.warnBg, borderRadius: R.lg, paddingVertical: 14, paddingHorizontal: 14, marginBottom: 22 },
-  alertIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: THEME === 'light' ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center' },
+  alert: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.warnBg, borderRadius: R.xl, paddingVertical: 14, paddingHorizontal: 14, marginBottom: 24 },
+  alertIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: THEME === 'light' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center' },
   alertText: { color: C.warnText, fontSize: 14, lineHeight: 20 },
   alertLink: { color: C.warnText, fontSize: 14, fontWeight: '700', marginTop: 2 },
   secHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  trend: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card2, borderRadius: R.pill, paddingHorizontal: 10, height: 30 },
-  bars: { flexDirection: 'row', backgroundColor: C.card, borderRadius: R.xl, paddingTop: 18, paddingBottom: 12, paddingHorizontal: 8, alignItems: 'flex-end', ...SH_SM },
+  trend: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: R.pill, paddingHorizontal: 12, height: 32, ...SH_SM },
+  bars: { flexDirection: 'row', backgroundColor: C.card, borderRadius: R.xl, paddingTop: 16, paddingBottom: 12, paddingHorizontal: 8, alignItems: 'flex-end', marginBottom: 14, ...SH_SM },
   col: { flex: 1, alignItems: 'center' },
   colAqi: { color: C.text, fontSize: 15, fontWeight: '700', marginBottom: 8 },
-  colBarWrap: { width: 34, height: 100, alignItems: 'center', justifyContent: 'flex-end', borderRadius: 17, paddingBottom: 5, backgroundColor: C.card2 },
+  colBarWrap: { width: 30, height: 70, alignItems: 'center', justifyContent: 'flex-end', borderRadius: 15, paddingBottom: 4, backgroundColor: C.card2 },
   colNow: { borderWidth: 2, borderColor: C.text, backgroundColor: 'transparent' },
   colBar: { width: 22, borderRadius: 11 },
   colLabel: { color: C.soft, fontSize: 12, fontWeight: '600', marginTop: 10 },
   colTime: { color: C.faint, fontSize: 11, marginTop: 2 },
   warnDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.warnIcon, marginTop: 6 },
-  forYou: { backgroundColor: C.lavender, borderRadius: R.xl, padding: 20, marginBottom: 12 },
-  forYouIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: THEME === 'light' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.07)', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  forYouKicker: { color: C.lavenderText, fontSize: 11, fontWeight: '700', letterSpacing: 1.3, textTransform: 'uppercase' },
-  forYouText: { fontFamily: F.serif, color: C.lavenderText, fontSize: 20, fontWeight: '500', lineHeight: 28, letterSpacing: -0.2 },
-  forYouLink: { color: C.lavenderText, fontSize: 14, fontWeight: '600', marginRight: 6 },
+  forYou: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: R.xl, padding: 16, marginBottom: 14, ...SH_SM },
+  forYouIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: C.lavender, alignItems: 'center', justifyContent: 'center' },
+  forYouKicker: { color: C.muted, fontSize: 12, fontWeight: '500' },
+  forYouText: { color: C.text, fontSize: 15, fontWeight: '600', lineHeight: 21, marginTop: 2 },
   showBtn: { backgroundColor: C.card2, borderRadius: R.pill, paddingHorizontal: 14, height: 32, justifyContent: 'center' },
   pRow: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: C.line },
   pName: { fontWeight: '600', color: C.text, fontSize: 15 },
   pVal: { color: C.soft, fontSize: 14 },
   pTrack: { height: 6, borderRadius: 3, backgroundColor: C.card2, marginVertical: 8, overflow: 'hidden' },
   pFill: { height: 6, borderRadius: 3 },
-  playerWrap: { marginHorizontal: 14, marginBottom: 8, backgroundColor: C.card, borderRadius: R.xl, ...SH },
+  playerWrap: { marginHorizontal: 16, marginBottom: 8, backgroundColor: C.card, borderRadius: R.pill, ...SH },
   player: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 8 },
   play: { width: 48, height: 48, borderRadius: 24, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', marginHorizontal: 6 },
   round: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.card2, alignItems: 'center', justifyContent: 'center' },
   playerText: { color: C.text, fontSize: 13, fontWeight: '600' },
   playerSub: { color: C.faint, fontSize: 11, marginTop: 2 },
-  next: { height: 40, justifyContent: 'center', paddingHorizontal: 12, borderRadius: R.pill, backgroundColor: C.peach, marginLeft: 6 },
+  next: { height: 40, justifyContent: 'center', paddingHorizontal: 14, borderRadius: R.pill, backgroundColor: C.lavender, marginLeft: 6 },
   skipMsg: { color: C.muted, fontSize: 12, textAlign: 'center', paddingHorizontal: 16, paddingTop: 10 },
 });

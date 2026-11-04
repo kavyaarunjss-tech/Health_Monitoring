@@ -67,11 +67,14 @@ export default function ProfileScreen({ initial, welcome, onSave, onTestServer, 
       {welcome ? (
         <View style={st.welcomeBox}>
           <View style={st.welcomeOrb} pointerEvents="none">
-            <Orb color={C.accent} size={190} />
+            <Orb color="#ff9b6a" size={340} />
           </View>
-          <Overline>Air quality · Karnataka</Overline>
-          <Text style={st.welcome}>Know the air{'\n'}before you{'\n'}step out.</Text>
-          <Muted style={{ maxWidth: 320 }}>
+          <View style={st.welcomeOrb2} pointerEvents="none">
+            <Orb color="#9c8cff" size={300} />
+          </View>
+          <Text style={st.welcome}>Know the air</Text>
+          <Text style={[st.welcome, { color: C.muted, marginTop: 0 }]}>before you step out.</Text>
+          <Muted style={{ maxWidth: 320, marginTop: 14 }}>
             Air quality forecasts for 8 Karnataka stations with personal health alerts. Tell us a little about you so the advice fits you. Everything
             stays on this phone.
           </Muted>
@@ -265,8 +268,9 @@ function Row({ label, value, onChange }) {
 
 const st = StyleSheet.create({
   welcomeBox: { marginTop: 6, marginBottom: 22, marginHorizontal: -20, paddingHorizontal: 20, paddingTop: 24, overflow: 'hidden', position: 'relative' },
-  welcomeOrb: { position: 'absolute', right: -96, top: -46 },
-  welcome: { fontFamily: F.serif, fontSize: 44, lineHeight: 50, fontWeight: '600', color: C.text, marginTop: 96, marginBottom: 14, letterSpacing: -1 },
+  welcomeOrb: { position: 'absolute', right: -120, top: -120 },
+  welcomeOrb2: { position: 'absolute', left: -140, top: 10 },
+  welcome: { fontFamily: F.display, fontSize: 36, lineHeight: 42, fontWeight: '400', color: C.text, marginTop: 120, letterSpacing: -1.2 },
   label: { fontWeight: '600', color: C.soft, marginBottom: 10, fontSize: 14 },
   input: { borderWidth: 1.5, borderColor: C.line, borderRadius: R.md, paddingHorizontal: 16, paddingVertical: 13, fontSize: 16, color: C.text, backgroundColor: C.bg },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },

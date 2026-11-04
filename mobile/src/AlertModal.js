@@ -22,7 +22,7 @@ export default function AlertModal({ alert, onContinue, onDismiss, onListen, rep
     <Modal visible animationType="fade" onRequestClose={onDismiss} statusBarTranslucent>
       <View style={[st.root, { paddingTop: top + 12, paddingBottom: bottom + 14 }]} testID="alertModal">
         <View style={st.orb} pointerEvents="none">
-          <Orb color={c.bg} size={340} />
+          <Orb color={c.bg} size={420} />
         </View>
         <View style={st.kickerRow}>
           <View style={[st.kickerDot, { backgroundColor: c.bg }]} />
@@ -69,17 +69,17 @@ export default function AlertModal({ alert, onContinue, onDismiss, onListen, rep
 
 const st = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22, overflow: 'hidden' },
-  orb: { position: 'absolute', right: -110, top: -70 },
+  orb: { position: 'absolute', right: -150, top: -150 },
   kickerRow: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: C.card, borderRadius: R.pill, paddingHorizontal: 12, height: 32, ...SH_SM },
   kickerDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
-  kicker: { color: C.text, fontSize: 12, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  title: { fontFamily: F.serif, color: C.text, fontSize: 38, fontWeight: '600', lineHeight: 44, letterSpacing: -0.8 },
+  kicker: { color: C.text, fontSize: 13, fontWeight: '600' },
+  title: { fontFamily: F.display, color: C.text, fontSize: 34, fontWeight: '400', lineHeight: 40, letterSpacing: -1.1 },
   body: { color: C.soft, fontSize: 16, lineHeight: 24, marginTop: 12 },
   meta: { flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 20, flexWrap: 'wrap' },
   metaPill: { borderRadius: R.pill, paddingHorizontal: 12, paddingVertical: 5, marginRight: 10 },
   metaText: { color: C.muted, fontSize: 13 },
-  act: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: R.lg, padding: 14, marginBottom: 10, ...SH_SM },
-  actIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  act: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: R.xl, padding: 14, marginBottom: 10, ...SH_SM },
+  actIcon: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
   actTitle: { color: C.text, fontSize: 15, fontWeight: '600' },
   actText: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 2 },
   listen: { width: 54, height: 54, borderRadius: 27, marginLeft: 10, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', ...SH_SM },

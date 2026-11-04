@@ -58,33 +58,22 @@ export function Icon({ name, size = 22, color = C.text, width = 1.75 }) {
   );
 }
 
-// ---------------------------------------------------------------- abstract 3D: a soft lit sphere in the category colour
+// ---------------------------------------------------------------- soft blurred colour light (no hard edge)
 let orbSeq = 0;
-function shade(hex, amt) {
-  const h = String(hex || '#999999').replace('#', '');
-  const n = parseInt(h.length === 3 ? h.split('').map((x) => x + x).join('') : h, 16);
-  const f = (v) => Math.max(0, Math.min(255, Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt)));
-  const r = f((n >> 16) & 255), g = f((n >> 8) & 255), b = f(n & 255);
-  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
-}
-export function Orb({ color, size = 160, glow = true }) {
-  const id = React.useMemo(() => 'orb' + ++orbSeq, []);
-  const base = color || '#b9b0a4';
+export function Orb({ color, size = 220, strength }) {
+  const id = React.useMemo(() => 'blob' + ++orbSeq, []);
+  const base = color || C.accent;
+  const op = strength != null ? strength : THEME === 'light' ? 0.55 : 0.32;
   return (
     <Svg width={size} height={size} viewBox="0 0 200 200">
       <Defs>
-        <RadialGradient id={id + 'g'} cx="50%" cy="50%" r="50%">
-          <Stop offset="55%" stopColor={base} stopOpacity={THEME === 'light' ? 0.32 : 0.4} />
+        <RadialGradient id={id} cx="50%" cy="50%" r="50%">
+          <Stop offset="0%" stopColor={base} stopOpacity={op} />
+          <Stop offset="45%" stopColor={base} stopOpacity={op * 0.55} />
           <Stop offset="100%" stopColor={base} stopOpacity={0} />
         </RadialGradient>
-        <RadialGradient id={id + 's'} cx="36%" cy="30%" r="72%">
-          <Stop offset="0%" stopColor={shade(base, 0.75)} stopOpacity={1} />
-          <Stop offset="38%" stopColor={shade(base, 0.18)} stopOpacity={1} />
-          <Stop offset="100%" stopColor={shade(base, -0.28)} stopOpacity={1} />
-        </RadialGradient>
       </Defs>
-      {glow ? <Circle cx={100} cy={100} r={100} fill={'url(#' + id + 'g)'} /> : null}
-      <Circle cx={100} cy={100} r={64} fill={'url(#' + id + 's)'} />
+      <Circle cx={100} cy={100} r={100} fill={'url(#' + id + ')'} />
     </Svg>
   );
 }
@@ -310,11 +299,11 @@ export function ActionCard({ icon, marked, text, source, title, index = 0 }) {
 }
 
 export const s = StyleSheet.create({
-  card: { backgroundColor: C.card, borderRadius: R.lg, padding: 18, marginBottom: 12, ...SH_SM },
+  card: { backgroundColor: C.card, borderRadius: R.xl, padding: 18, marginBottom: 12, ...SH_SM },
   h2row: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 },
-  h2: { fontFamily: F.serif, fontSize: 21, fontWeight: '600', color: C.text, letterSpacing: -0.2 },
-  title: { fontFamily: F.serif, fontSize: 34, lineHeight: 40, fontWeight: '600', color: C.text, letterSpacing: -0.6 },
-  overline: { color: C.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
+  h2: { fontFamily: F.display, fontSize: 18, fontWeight: '600', color: C.text, letterSpacing: -0.3 },
+  title: { fontFamily: F.display, fontSize: 32, lineHeight: 38, fontWeight: '400', color: C.text, letterSpacing: -0.9 },
+  overline: { color: C.muted, fontSize: 13, fontWeight: '500' },
   muted: { color: C.muted, fontSize: 14, lineHeight: 20 },
   body: { color: C.soft, fontSize: 15, lineHeight: 23 },
   src: { color: C.faint, fontSize: 12, marginTop: 4 },
@@ -348,8 +337,8 @@ export const s = StyleSheet.create({
   segText: { color: C.muted, fontSize: 14, fontWeight: '500' },
   segTextOn: { color: C.text, fontWeight: '600' },
   banner: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: R.md, padding: 14, marginBottom: 12 },
-  action: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: C.card, borderRadius: R.lg, padding: 16, marginBottom: 10, ...SH_SM },
-  actionIcon: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  action: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: C.card, borderRadius: R.xl, padding: 16, marginBottom: 10, ...SH_SM },
+  actionIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   actionTitle: { color: C.text, fontSize: 16, fontWeight: '600', marginBottom: 4 },
   actionText: { color: C.muted, fontSize: 14, lineHeight: 21 },
 });

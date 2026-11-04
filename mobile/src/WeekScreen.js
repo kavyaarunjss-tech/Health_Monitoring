@@ -58,14 +58,14 @@ export default function WeekScreen({ data, error, station }) {
           </Card>
 
           <View style={{ flexDirection: 'row' }}>
-            <Card tone={1} style={{ flex: 1, marginRight: 6 }}>
+            <Card style={{ flex: 1, marginRight: 6 }}>
               <Text style={st.stat}>{bad}<Text style={st.statOf}>{' of 7'}</Text></Text>
               <Text style={st.statLbl}>days Moderate or worse</Text>
             </Card>
-            <Card tone={0} style={{ flex: 1, marginLeft: 6 }}>
+            <Card style={{ flex: 1, marginLeft: 6 }}>
               {trend ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-                  <Icon name={trend.icon} size={22} color={C.peachText} width={2} />
+                  <Icon name={trend.icon} size={22} color={C.text} width={1.75} />
                   <Text style={st.trend}>{trend.t}</Text>
                 </View>
               ) : (
@@ -135,15 +135,15 @@ function Section({ title, items }) {
 }
 
 const st = StyleSheet.create({
-  h1: { fontFamily: F.serif, color: C.text, fontSize: 34, fontWeight: '600', letterSpacing: -0.6, lineHeight: 41, marginTop: 6, marginBottom: 20 },
+  h1: { fontFamily: F.display, color: C.text, fontSize: 32, fontWeight: '400', letterSpacing: -1, lineHeight: 38, marginTop: 6, marginBottom: 20 },
   day: { width: 28, borderRadius: 14 },
   dayAqi: { color: C.soft, fontSize: 11, fontWeight: '600', marginBottom: 6 },
   wd: { color: C.muted, fontSize: 12, fontWeight: '500', marginTop: 10 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16 },
-  stat: { fontFamily: F.serif, color: C.sageText, fontSize: 40, fontWeight: '600', letterSpacing: -1 },
-  statOf: { fontFamily: F.serif, color: C.sageText, fontSize: 18, fontWeight: '500' },
-  statLbl: { color: C.soft, fontSize: 13, marginTop: 4 },
-  trend: { fontFamily: F.serif, color: C.peachText, fontSize: 28, fontWeight: '600', marginLeft: 6 },
+  stat: { fontFamily: F.display, color: C.text, fontSize: 40, fontWeight: '400', letterSpacing: -1.5 },
+  statOf: { fontFamily: F.display, color: C.muted, fontSize: 18, fontWeight: '400' },
+  statLbl: { color: C.muted, fontSize: 13, marginTop: 4 },
+  trend: { fontFamily: F.display, color: C.text, fontSize: 26, fontWeight: '500', letterSpacing: -0.6, marginLeft: 6 },
   more: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: R.pill, backgroundColor: C.card2, marginVertical: 6 },
   dayRow: { flexDirection: 'row', paddingVertical: 8, borderTopWidth: 1, borderTopColor: C.line },
   foot: { color: C.faint, fontSize: 12, textAlign: 'center', marginVertical: 12 },

@@ -1,90 +1,90 @@
 // Design system: colour tokens, type, radii, shadows and the theme engine (Light / Dark / System).
-// Warm editorial look: ivory and cream in light mode, layered charcoal with soft glows in dark mode.
+// Soft wellness look: white cards on a soft white page with blurred colour glows; near-black layers with dimmed glows in dark mode.
 // CPCB category colours are the only strong colours; every text/background pair here was checked for WCAG AA (4.5:1).
 import { Appearance } from 'react-native';
 
 const LIGHT = {
-  bg: '#f6f1e9', // warm ivory page
-  bg2: '#efe7db', // cream band
-  card: '#fffcf7', // raised surface
-  card2: '#efe7db', // inset surface (chips, tracks)
-  line: '#e7ded0',
-  nav: '#fffcf7',
-  text: '#1e1b18',
-  soft: '#4a433c',
-  muted: '#665e55',
-  faint: '#71685e',
-  accent: '#a2482a', // clay: links and active states
-  accentBg: '#f8dcc9',
-  selBg: '#f8e6d8',
-  selBorder: '#d9a283',
-  good: '#2e6a3d',
-  warnBg: '#fbe5d4',
+  bg: '#f6f7f9', // soft white page
+  bg2: '#f1f2f5',
+  card: '#ffffff', // floating white cards
+  card2: '#f1f2f5', // inset surface (chips, tracks)
+  line: '#e9eaee',
+  nav: '#ffffff',
+  text: '#15161a',
+  soft: '#3f434b',
+  muted: '#626773',
+  faint: '#686d78',
+  accent: '#5a4bd1', // soft indigo: links and active states
+  accentBg: '#eeecff',
+  selBg: '#eeecff',
+  selBorder: '#b9b1f2',
+  good: '#1f7a47',
+  warnBg: '#fff0e5',
   warnText: '#7a3410',
   warnIcon: '#a8501c',
-  dangerBg: '#f8ddda',
+  dangerBg: '#fde8e8',
   danger: '#a8282d',
-  dangerText: '#7d1c17',
-  infoBg: '#e3ebf2',
-  infoText: '#22405b',
-  strong: '#1e1b18',
-  onPrimary: '#fffcf7', // text on the ink button
-  primary: '#1e1b18',
-  shadow: '#5b4a36',
-  // pastel accents (backgrounds only; text on them uses tintText)
-  sage: '#dde8d6',
-  lavender: '#e6e0f4',
-  peach: '#f8dcc9',
-  butter: '#f5e8bf',
-  sky: '#e3ebf2',
-  sageText: '#2c4a2f',
-  lavenderText: '#3c3166',
-  peachText: '#6e3416',
-  butterText: '#5a4710',
-  skyText: '#22405b',
-  glowA: 'rgba(242,168,116,0.20)',
-  glowB: 'rgba(186,170,236,0.16)',
+  dangerText: '#8a1c1c',
+  infoBg: '#e7f0ff',
+  infoText: '#1e427a',
+  strong: '#15161a',
+  onPrimary: '#ffffff',
+  primary: '#15161a',
+  shadow: '#1b1d2b',
+  // pastel tints (backgrounds only; text on them uses the matching *Text)
+  sage: '#e5f5ec',
+  lavender: '#eeecff',
+  peach: '#ffede2',
+  butter: '#fff5d9',
+  sky: '#e7f0ff',
+  sageText: '#1f5a3a',
+  lavenderText: '#3b3285',
+  peachText: '#7a3a12',
+  butterText: '#5e4a08',
+  skyText: '#1e427a',
+  glowA: 'rgba(255,168,118,0.42)', // soft peach light
+  glowB: 'rgba(160,148,255,0.34)', // soft lavender light
 };
 const DARK = {
-  bg: '#121110', // near-black charcoal
-  bg2: '#171614',
-  card: '#1c1a18', // layered surfaces
-  card2: '#272421',
-  line: '#2e2a26',
-  nav: '#1c1a18',
-  text: '#f3eee7',
-  soft: '#d2cac0',
-  muted: '#a99f94',
-  faint: '#988e83',
-  accent: '#f2b48f', // the same clay, lifted to peach
-  accentBg: '#2c1f18',
-  selBg: '#2c1f18',
-  selBorder: '#8a5a3e',
-  good: '#9dd3a9',
-  warnBg: '#2f2017',
-  warnText: '#f6cbae',
+  bg: '#0e0f12', // near-black
+  bg2: '#121317',
+  card: '#17181d', // layered surfaces
+  card2: '#202228',
+  line: '#2a2c33',
+  nav: '#17181d',
+  text: '#f3f4f6',
+  soft: '#cdd0d6',
+  muted: '#9a9fa8',
+  faint: '#8e939c',
+  accent: '#a99cff',
+  accentBg: '#1f1d33',
+  selBg: '#1f1d33',
+  selBorder: '#5b52a8',
+  good: '#8fd9ae',
+  warnBg: '#2b1e15',
+  warnText: '#f7cbae',
   warnIcon: '#f2a874',
-  dangerBg: '#2e1817',
+  dangerBg: '#2c1718',
   danger: '#f08a8c',
-  dangerText: '#f5bdb9',
-  infoBg: '#19222c',
-  infoText: '#c5d7ea',
+  dangerText: '#f5bdbd',
+  infoBg: '#16202f',
+  infoText: '#c3d6f5',
   strong: '#ffffff',
-  onPrimary: '#1b1917',
-  primary: '#f3eee7',
+  onPrimary: '#111216',
+  primary: '#f3f4f6',
   shadow: '#000000',
-  sage: '#1d2620',
-  lavender: '#221f2e',
-  peach: '#2c1f18',
-  butter: '#29251a',
-  sky: '#19222c',
-  sageText: '#c7dec6',
-  lavenderText: '#d6ccf4',
-  peachText: '#f3c9ae',
-  butterText: '#eedb9f',
-  skyText: '#c5d7ea',
-  glowA: 'rgba(240,170,120,0.16)',
-  glowB: 'rgba(160,140,235,0.12)',
+  sage: '#15241c',
+  lavender: '#1f1d33',
+  peach: '#2a1d16',
+  butter: '#262213',
+  sky: '#16202f',
+  sageText: '#b9e6cb',
+  lavenderText: '#d3ccff',
+  peachText: '#f7c9ae',
+  butterText: '#f0dd9c',
+  skyText: '#c3d6f5',
+  glowA: 'rgba(255,150,100,0.20)',
+  glowB: 'rgba(140,120,255,0.20)',
 };
 
 // ---------------------------------------------------------------- theme engine
@@ -181,22 +181,23 @@ try {
 // ---------------------------------------------------------------- type, shape, depth
 const WEB = typeof document !== 'undefined';
 export const F = {
-  serif: WEB ? 'Lora, Georgia, serif' : 'serif', // editorial display: headlines and the big AQI
+  display: WEB ? 'Inter, Roboto, system-ui, sans-serif' : undefined, // one clean sans-serif everywhere
   sans: WEB ? 'Inter, Roboto, system-ui, sans-serif' : undefined,
 };
+F.serif = F.display; // older name
 export const R = { xl: 28, lg: 22, md: 16, sm: 12, pill: 999 };
 // soft, warm shadow for floating surfaces (barely visible in dark mode, where layers do the work)
 export const SH = THEME === 'light'
-  ? { shadowColor: C.shadow, shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 8 }, elevation: 3 }
+  ? { shadowColor: C.shadow, shadowOpacity: 0.07, shadowRadius: 28, shadowOffset: { width: 0, height: 10 }, elevation: 3 }
   : { shadowColor: '#000000', shadowOpacity: 0.35, shadowRadius: 24, shadowOffset: { width: 0, height: 10 }, elevation: 4 };
 export const SH_SM = THEME === 'light'
-  ? { shadowColor: C.shadow, shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 1 }
+  ? { shadowColor: C.shadow, shadowOpacity: 0.05, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 1 }
   : { shadowColor: '#000000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 };
 // pastel pairs for icon tiles and highlight cards, in a fixed order so screens look calm, not random
 export const PASTELS = [
+  { bg: C.lavender, fg: C.lavenderText },
   { bg: C.peach, fg: C.peachText },
   { bg: C.sage, fg: C.sageText },
-  { bg: C.lavender, fg: C.lavenderText },
   { bg: C.butter, fg: C.butterText },
   { bg: C.sky, fg: C.skyText },
 ];
@@ -213,7 +214,7 @@ export const CAT = {
   Severe: { bg: '#9e2f38', fg: '#ffffff' },
 };
 export const CAT_ORDER = ['Good', 'Satisfactory', 'Moderate', 'Poor', 'Very Poor', 'Severe'];
-export const catStyle = (c) => CAT[c] || { bg: THEME === 'light' ? '#b9b0a4' : '#4a4540', fg: C.text };
+export const catStyle = (c) => CAT[c] || { bg: THEME === 'light' ? '#c7cad1' : '#3a3d45', fg: C.text };
 // category name written as coloured text on the page: deeper shades on ivory, lighter on charcoal
 const CAT_TEXT = {
   light: { Good: '#256b3f', Satisfactory: '#4a6312', Moderate: '#735600', Poor: '#9a4612', 'Very Poor': '#a8282d', Severe: '#86232b' },

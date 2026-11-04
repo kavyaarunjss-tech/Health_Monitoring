@@ -10,8 +10,8 @@ export default function StationsScreen({ data, error, current, onPick, mode }) {
   const rows = data.stations.slice().sort((a, b) => (b.aqi == null ? -1 : b.aqi) - (a.aqi == null ? -1 : a.aqi));
   return (
     <View>
-      <Overline style={{ marginTop: 8 }}>Karnataka · 8 KSPCB stations</Overline>
       <Text style={st.h1}>Stations</Text>
+      <Text style={[st.h1, { color: C.muted, marginTop: 0 }]}>across Karnataka</Text>
       <Text style={st.sub}>{mode === 'live' ? 'Newest data at each station · tap one to follow it' : 'At the replay time · tap one to follow it'}</Text>
       {rows.map((x) => {
         const has = x.aqi != null;
@@ -53,11 +53,11 @@ export default function StationsScreen({ data, error, current, onPick, mode }) {
 }
 
 const st = StyleSheet.create({
-  h1: { fontFamily: F.serif, color: C.text, fontSize: 40, fontWeight: '600', letterSpacing: -0.8, lineHeight: 46, marginTop: 6 },
+  h1: { fontFamily: F.display, color: C.text, fontSize: 32, fontWeight: '400', letterSpacing: -1, lineHeight: 38, marginTop: 6 },
   sub: { color: C.muted, fontSize: 15, marginTop: 6, marginBottom: 20 },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: R.lg, paddingHorizontal: 12, paddingRight: 14, height: 72, marginBottom: 10, borderWidth: 1.5, borderColor: 'transparent', ...SH_SM },
+  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: R.xl, paddingHorizontal: 12, paddingRight: 14, height: 72, marginBottom: 10, borderWidth: 1.5, borderColor: 'transparent', ...SH_SM },
   mine: { borderColor: C.selBorder, backgroundColor: C.selBg },
-  badge: { width: 54, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  badge: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   badgeEmpty: { backgroundColor: C.card2 },
   name: { color: C.text, fontSize: 16, fontWeight: '600', flexShrink: 1 },
   cat: { color: C.muted, fontSize: 13, marginTop: 3 },
